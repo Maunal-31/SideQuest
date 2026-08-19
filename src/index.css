@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-bg: #F3F1EB;
+}
+
+@layer base {
+  body {
+    @apply text-black overflow-x-hidden bg-[#F3F1EB];
+    /* Dotted background */
+    background-image: radial-gradient(#000000 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-position: 0 0;
+  }
+}
+
+@layer utilities {
+  .brutal-border {
+    @apply border-2 border-black;
+  }
+  .brutal-shadow {
+    @apply shadow-[4px_4px_0_0_rgba(0,0,0,1)];
+  }
+  .brutal-shadow-sm {
+    @apply shadow-[2px_2px_0_0_rgba(0,0,0,1)];
+  }
+  .brutal-shadow-hover:hover {
+    @apply shadow-none translate-x-[4px] translate-y-[4px];
+  }
+  .brutal-card {
+    @apply border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] bg-white;
+  }
+}
+
+/* Map specific overrides */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  background-color: #F3F1EB;
+}
+
+.custom-leaflet-icon {
+  background: transparent;
+  border: none;
+}
+
+.quest-marker-pulse {
+  animation: bounce-marker 1s infinite alternate;
+}
+
+@keyframes bounce-marker {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Scrollbar customization */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #000;
+  border-radius: 0;
+  border: 1px solid #000;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #333;
+}
+
+.custom-popup .leaflet-popup-content-wrapper {
+  background-color: #fff;
+  color: #000;
+  border: 2px solid #000;
+  border-radius: 0;
+  box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 1);
+  padding: 0;
+}
+.custom-popup .leaflet-popup-tip {
+  background-color: #fff;
+  border-bottom: 2px solid #000;
+  border-right: 2px solid #000;
+}
+.custom-popup .leaflet-popup-close-button {
+  color: #000 !important;
+  font-weight: bold;
+}
