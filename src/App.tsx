@@ -4,8 +4,12 @@ import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
 import Leaderboard from './pages/Leaderboard';
 import Profile from './pages/Profile';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 import PostQuestModal from './components/PostQuestModal';
+import ProtectedRoute from './components/ProtectedRoute';
 import { SideQuestProvider } from './context/SideQuestContext';
+import { AuthProvider } from './context/AuthContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -20,12 +24,38 @@ function AppContent() {
 
   return (
     <>
-      <div className="min-h-screen text-black font-sans selection:bg-[#EAB308]/30">
+      <div className="min-h-screen text-black font-sans selection:bg-[#EAB308]/30 bg-[var(--color-brand-bg)]">
         <Navbar />
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/profile" element={<Profile />} />
+          {/* Public Auth Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+
+          {/* Protected Routes (Require Authentication) */}
+          <Route 
+            path="/" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/leaderboard" 
+            element={
+              <ProtectedRoute>
+                <Leaderboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } 
+          />
         </Routes>
       </div>
       
@@ -44,11 +74,13 @@ function AppContent() {
 
 function App() {
   return (
-    <SideQuestProvider>
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
-    </SideQuestProvider>
+    <AuthProvider>
+      <SideQuestProvider>
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </SideQuestProvider>
+    </AuthProvider>
   );
 }
 

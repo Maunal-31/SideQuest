@@ -1,22 +1,39 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { Sparkles, Trophy, User, Crosshair } from 'lucide-react';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { Sparkles, Trophy, User as UserIcon, Crosshair, LogOut } from 'lucide-react';
 import { useSideQuest } from '../context/SideQuestContext';
+import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-toastify';
 
 const Navbar: React.FC = () => {
-  const { currentUser } = useSideQuest();
+  const { currentUser: mockUser } = useSideQuest();
+  const { currentUser: authUser, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.info('Logged out successfully.');
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  const displayName = authUser?.displayName || authUser?.email?.split('@')[0] || mockUser.name;
+  const avatarUrl = authUser?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayName)}`;
 
   return (
     <nav className="fixed top-0 w-full z-40 px-4 md:px-8 py-4 pointer-events-none">
       <div className="max-w-7xl mx-auto flex items-center justify-between pointer-events-auto">
         
         {/* Logo */}
-        <div className="flex items-center gap-2 brutal-card px-4 py-2 bg-[#EAB308] rotate-[-2deg] hover:rotate-0 transition-transform">
+        <Link to="/" className="flex items-center gap-2 brutal-card px-4 py-2 bg-[#EAB308]">
           <Sparkles className="w-6 h-6 text-black fill-white" />
           <h1 className="text-2xl font-black tracking-tighter text-black uppercase">
             SideQuest
           </h1>
-        </div>
+        </Link>
 
         {/* Nav Links */}
         <div className="flex bg-white p-1 rounded-xl brutal-border brutal-shadow brutal-shadow-hover">
@@ -36,32 +53,55 @@ const Navbar: React.FC = () => {
             to="/profile" 
             className={({ isActive }) => `px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${isActive ? 'bg-[#16A34A] text-white' : 'text-black hover:bg-gray-100'}`}
           >
-            <User className="w-4 h-4" /> <span className="hidden md:inline">Profile</span>
+            <UserIcon className="w-4 h-4" /> <span className="hidden md:inline">Profile</span>
           </NavLink>
         </div>
 
         {/* User Info & Post Action */}
         <div className="flex items-center gap-3">
-          {/* We'll pass a custom event or just let Dashboard handle the modal, 
-              but since Navbar is global, we can use a custom event or just style it. 
-              Let's add a button here that triggers a document event for the modal. */}
-          <button 
-            onClick={() => document.dispatchEvent(new CustomEvent('open-post-modal'))}
-            className="hidden md:flex items-center gap-2 bg-[#C084FC] hover:bg-black hover:text-white text-black px-4 py-2 rounded-xl brutal-border brutal-shadow-sm brutal-shadow-hover transition-all font-black uppercase text-sm rotate-1"
-          >
-            <Sparkles className="w-4 h-4" /> Post Task
-          </button>
-          
-          <div className="flex items-center gap-4 brutal-card px-3 py-1.5 bg-white rotate-[1deg] hover:rotate-0 transition-transform">
-            <div className="hidden md:flex flex-col items-end">
-              <span className="text-sm font-bold text-black">{currentUser.name}</span>
-              <span className="text-xs text-[#EA580C] font-black">{currentUser.coins} Coins</span>
+          {authUser ? (
+            <>
+              <button 
+                onClick={() => document.dispatchEvent(new CustomEvent('open-post-modal'))}
+                className="hidden md:flex items-center gap-2 bg-[#C084FC] hover:bg-black hover:text-white text-black px-4 py-2 rounded-xl brutal-border brutal-shadow-sm brutal-shadow-hover transition-all font-black uppercase text-sm"
+              >
+                <Sparkles className="w-4 h-4" /> Post Task
+              </button>
+              
+              <div className="flex items-center gap-3 brutal-card px-3 py-1.5 bg-white">
+                <div className="hidden md:flex flex-col items-end">
+                  <span className="text-sm font-bold text-black">{displayName}</span>
+                  <span className="text-xs text-[#EA580C] font-black">{mockUser.coins} Coins</span>
+                </div>
+                <div className="relative">
+                  <img src={avatarUrl} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-black bg-[#60A5FA]" />
+                  <div className="absolute -bottom-1 -right-1 bg-[#16A34A] w-4 h-4 rounded-full border border-black z-10"></div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  title="Sign Out"
+                  className="p-1.5 bg-red-100 hover:bg-red-500 hover:text-white text-black rounded-lg brutal-border transition-colors ml-1"
+                >
+                  <LogOut className="w-4 h-4" strokeWidth={2.5} />
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link 
+                to="/login"
+                className="px-4 py-2 bg-white hover:bg-black hover:text-white text-black font-black uppercase text-sm rounded-xl brutal-border brutal-shadow-sm transition-all"
+              >
+                Sign In
+              </Link>
+              <Link 
+                to="/signup"
+                className="hidden sm:flex px-4 py-2 bg-[#16A34A] text-white hover:bg-black font-black uppercase text-sm rounded-xl brutal-border brutal-shadow-sm transition-all"
+              >
+                Sign Up
+              </Link>
             </div>
-            <div className="relative">
-              <img src={currentUser.avatar} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-black bg-[#60A5FA]" />
-              <div className="absolute -bottom-1 -right-1 bg-[#F472B6] w-4 h-4 rounded-full border border-black z-10 animate-pulse"></div>
-            </div>
-          </div>
+          )}
         </div>
 
       </div>

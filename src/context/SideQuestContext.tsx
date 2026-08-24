@@ -1,12 +1,14 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Quest, UserProfile } from '../types';
-import { MOCK_QUESTS, CURRENT_USER } from '../data/mockData';
+import { CURRENT_USER } from '../data/mockData';
+import { subscribeToQuests, acceptQuest as acceptQuestService, updateQuestStatusInFirestore } from '../services/questService';
 
 interface SideQuestContextType {
   quests: Quest[];
   currentUser: UserProfile;
   addQuest: (quest: Quest) => void;
   updateQuestStatus: (id: string, status: Quest['status']) => void;
+  acceptQuest: (id: string, hunterName: string) => Promise<void>;
   activeMapPin: string | null;
   setActiveMapPin: (id: string | null) => void;
   flyToLocation: { lat: number; lng: number } | null;
@@ -16,10 +18,17 @@ interface SideQuestContextType {
 const SideQuestContext = createContext<SideQuestContextType | undefined>(undefined);
 
 export const SideQuestProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [quests, setQuests] = useState<Quest[]>(MOCK_QUESTS);
+  const [quests, setQuests] = useState<Quest[]>([]);
   const [currentUser] = useState<UserProfile>(CURRENT_USER);
   const [activeMapPin, setActiveMapPin] = useState<string | null>(null);
   const [flyToLocation, setFlyToLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToQuests((liveQuests) => {
+      setQuests(liveQuests as any);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const addQuest = (quest: Quest) => {
     setQuests([quest, ...quests]);
@@ -27,6 +36,11 @@ export const SideQuestProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   const updateQuestStatus = (id: string, status: Quest['status']) => {
     setQuests(quests.map(q => q.id === id ? { ...q, status } : q));
+    updateQuestStatusInFirestore(id, status).catch(console.error);
+  };
+
+  const acceptQuest = async (id: string, hunterName: string) => {
+    await acceptQuestService(id, hunterName);
   };
 
   return (
@@ -35,6 +49,7 @@ export const SideQuestProvider: React.FC<{ children: ReactNode }> = ({ children 
       currentUser,
       addQuest,
       updateQuestStatus,
+      acceptQuest,
       activeMapPin,
       setActiveMapPin,
       flyToLocation,

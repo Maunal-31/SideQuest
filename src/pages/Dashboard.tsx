@@ -1,18 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MapEngine from '../components/MapEngine';
 import QuestCard from '../components/QuestCard';
 import QuestModal from '../components/QuestModal';
 import { useSideQuest } from '../context/SideQuestContext';
-import { Search, Plus, Compass } from 'lucide-react';
+import { Search, Plus, Compass, Loader2 } from 'lucide-react';
 import { CAMPUS_ZONES } from '../data/mockData';
+import { subscribeToQuests, Quest } from '../services/questService';
 
 const Dashboard: React.FC = () => {
-  const { quests, activeMapPin, setActiveMapPin, setFlyToLocation } = useSideQuest();
+  const { activeMapPin, setActiveMapPin, setFlyToLocation } = useSideQuest();
   
+  const [quests, setQuests] = useState<Quest[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  
   const [isSheetExpanded, setIsSheetExpanded] = useState(false);
+
+  // Task 3: Subscribe to real-time quests from Firestore on mount
+  useEffect(() => {
+    const unsubscribe = subscribeToQuests((liveQuests) => {
+      setQuests(liveQuests);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const filteredQuests = quests.filter(q => {
     const matchesSearch = q.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -57,7 +68,7 @@ const Dashboard: React.FC = () => {
             </h2>
             <button 
               onClick={() => document.dispatchEvent(new CustomEvent('open-post-modal'))}
-              className="w-12 h-12 rounded-full bg-[#16A34A] text-white flex items-center justify-center brutal-border brutal-shadow brutal-shadow-hover rotate-12 hover:rotate-0"
+              className="w-12 h-12 rounded-full bg-[#16A34A] text-white flex items-center justify-center brutal-border brutal-shadow brutal-shadow-hover"
             >
               <Plus className="w-6 h-6" strokeWidth={3} />
             </button>
@@ -96,17 +107,22 @@ const Dashboard: React.FC = () => {
 
           {/* Feed */}
           <div className="flex-1 overflow-y-auto custom-scrollbar space-y-6 pr-2 pb-24 md:pb-8 pt-4">
-            {filteredQuests.length === 0 ? (
-              <div className="text-center text-black font-bold py-10 bg-white brutal-border brutal-shadow rounded-xl rotate-[-2deg]">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-12 text-black font-bold">
+                <Loader2 className="w-10 h-10 animate-spin mb-3 text-[#EA580C]" strokeWidth={3} />
+                <p className="text-lg uppercase">Scanning Campus Bounties...</p>
+              </div>
+            ) : filteredQuests.length === 0 ? (
+              <div className="text-center text-black font-bold py-10 bg-white brutal-border brutal-shadow rounded-xl">
                 <p className="text-2xl mb-2">No quests found!</p>
-                <p>Try adjusting your search.</p>
+                <p>Try adjusting your search or post a new bounty.</p>
               </div>
             ) : (
               filteredQuests.map(quest => (
                 <QuestCard 
                   key={quest.id} 
                   quest={quest} 
-                  onClick={() => setActiveMapPin(quest.id)}
+                  onClick={() => quest.id && setActiveMapPin(quest.id)}
                 />
               ))
             )}
@@ -116,7 +132,7 @@ const Dashboard: React.FC = () => {
 
       {/* Right Side Map */}
       <div className="flex-1 relative border-l-4 border-black md:border-l-0">
-        <MapEngine />
+        <MapEngine quests={quests as any} />
         
         {/* Floating Quick Filters overlay */}
         <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10 hidden md:flex items-center gap-3 bg-white p-3 rounded-2xl brutal-border brutal-shadow">

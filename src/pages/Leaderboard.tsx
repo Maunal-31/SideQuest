@@ -1,6 +1,5 @@
 import React from 'react';
-import { Trophy, Medal, Search, Flame } from 'lucide-react';
-import { useSideQuest } from '../context/SideQuestContext';
+import { Trophy, Search, Flame } from 'lucide-react';
 
 const MOCK_LEADERBOARD = [
   { id: '1', name: 'Alex Hunter', level: 15, xp: 3450, badge: 'Hardware Wizard', rank: 1, streak: 12 },
@@ -16,14 +15,14 @@ const Leaderboard: React.FC = () => {
       <div className="max-w-4xl mx-auto">
         
         <div className="text-center mb-12 mt-4 relative">
-          <div className="inline-block bg-[#F472B6] px-6 py-2 rounded-xl brutal-border brutal-shadow rotate-[-2deg] mb-4">
+          <div className="inline-block bg-[#F472B6] px-6 py-2 rounded-xl brutal-border brutal-shadow mb-4">
             <h1 className="text-3xl md:text-5xl font-black text-black uppercase flex items-center justify-center gap-4">
               <Trophy className="text-black w-10 h-10" strokeWidth={3} /> Campus Elite
             </h1>
           </div>
           <div className="flex flex-col items-center gap-2">
-            <p className="text-black font-bold text-lg bg-white inline-block px-4 py-2 brutal-border brutal-shadow-sm rotate-[1deg]">The top problem solvers and bounty hunters.</p>
-            <p className="text-black/80 font-bold text-sm bg-[#EAB308] inline-block px-3 py-1 rounded-md brutal-border rotate-[-1deg]">
+            <p className="text-black font-bold text-lg bg-white inline-block px-4 py-2 brutal-border brutal-shadow-sm">The top problem solvers and bounty hunters.</p>
+            <p className="text-black/80 font-bold text-sm bg-[#EAB308] inline-block px-3 py-1 rounded-md brutal-border">
               * Rankings are strictly based on XP earned by successfully solving tasks!
             </p>
           </div>
@@ -79,7 +78,7 @@ const Leaderboard: React.FC = () => {
         </div>
 
         {/* Leaderboard Table */}
-        <div className="bg-white brutal-border brutal-shadow rounded-2xl overflow-hidden mt-8 rotate-[1deg]">
+        <div className="bg-white brutal-border brutal-shadow rounded-2xl overflow-hidden mt-8">
           <div className="p-4 border-b-4 border-black flex justify-between items-center bg-[#F3F1EB]">
             <h3 className="font-black text-black text-xl uppercase">Rankings</h3>
             <div className="relative">
@@ -104,7 +103,7 @@ const Leaderboard: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {MOCK_LEADERBOARD.map((user, idx) => (
+                {MOCK_LEADERBOARD.map((user) => (
                   <tr key={user.id} className="border-b-2 border-black hover:bg-gray-50 transition-colors">
                     <td className="p-4 font-black text-xl text-center border-r-2 border-black">
                       {user.rank}

@@ -1,10 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useSideQuest } from '../context/SideQuestContext';
 import { CAMPUS_BOUNDS, CAMPUS_CENTER } from '../data/mockData';
 import { getCategoryHex } from '../utils/colors';
+import { Quest } from '../types';
 
 const MapController = () => {
   const map = useMap();
@@ -45,8 +46,13 @@ const createCustomIcon = (hexColor: string, isUrgent: boolean) => {
   });
 };
 
-const MapEngine: React.FC = () => {
-  const { quests, setActiveMapPin } = useSideQuest();
+interface MapEngineProps {
+  quests?: Quest[];
+}
+
+const MapEngine: React.FC<MapEngineProps> = ({ quests: propQuests }) => {
+  const { quests: contextQuests, setActiveMapPin } = useSideQuest();
+  const quests = propQuests || contextQuests;
 
   return (
     <div className="w-full h-full relative z-0">
@@ -66,29 +72,37 @@ const MapEngine: React.FC = () => {
         
         <MapController />
 
-        {quests.filter(q => q.status === 'Open' || q.status === 'In Progress').map((quest) => (
-          <Marker
-            key={quest.id}
-            position={[quest.location.lat, quest.location.lng]}
-            icon={createCustomIcon(getCategoryHex(quest.category), quest.urgency === 'Critical')}
-            eventHandlers={{
-              click: () => setActiveMapPin(quest.id),
-            }}
-          >
-            <Popup className="custom-popup">
-              <div className="p-2 min-w-[200px]">
-                <div className="text-[10px] font-black uppercase text-gray-500 mb-1">{quest.category}</div>
-                <h3 className="font-black text-black text-sm mb-3 leading-tight">{quest.title}</h3>
-                <div className="flex items-center justify-between mt-3 text-xs font-bold">
-                  <span className="bg-[#EAB308] px-2 py-1 rounded border-2 border-black">
-                    {quest.reward.amount} {quest.reward.type}
-                  </span>
-                  <span className="text-black">{quest.location.name}</span>
+        {quests.filter(q => q.status === 'Open' || q.status === 'In Progress').map((quest) => {
+          const lat = quest.location?.lat ?? (quest as any).lat ?? 23.0338;
+          const lng = quest.location?.lng ?? (quest as any).lng ?? 72.5464;
+          const locName = quest.location?.name ?? (quest as any).locationZone ?? 'Campus';
+          const rewardAmt = quest.reward?.amount ?? (quest as any).rewardAmount ?? 0;
+          const rewardType = quest.reward?.type ?? (quest as any).rewardType ?? 'Coins';
+
+          return (
+            <Marker
+              key={quest.id}
+              position={[lat, lng]}
+              icon={createCustomIcon(getCategoryHex(quest.category), quest.urgency === 'Critical')}
+              eventHandlers={{
+                click: () => quest.id && setActiveMapPin(quest.id),
+              }}
+            >
+              <Popup className="custom-popup">
+                <div className="p-2 min-w-[200px]">
+                  <div className="text-[10px] font-black uppercase text-gray-500 mb-1">{quest.category}</div>
+                  <h3 className="font-black text-black text-sm mb-3 leading-tight">{quest.title}</h3>
+                  <div className="flex items-center justify-between mt-3 text-xs font-bold">
+                    <span className="bg-[#EAB308] px-2 py-1 rounded border-2 border-black">
+                      {rewardAmt} {rewardType}
+                    </span>
+                    <span className="text-black">{locName}</span>
+                  </div>
                 </div>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+              </Popup>
+            </Marker>
+          );
+        })}
       </MapContainer>
     </div>
   );

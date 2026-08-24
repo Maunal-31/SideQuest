@@ -1,24 +1,43 @@
 import React, { useState } from 'react';
 import type { Quest } from '../types';
 import { getCategoryColor, getUrgencyColor } from '../utils/colors';
-import { X, Clock, Navigation, Award, Shield, CheckCircle2, UploadCloud, Sticker } from 'lucide-react';
+import { X, Clock, Navigation, Award, Shield, CheckCircle2, UploadCloud } from 'lucide-react';
 import { useSideQuest } from '../context/SideQuestContext';
+import { acceptQuest, updateQuestStatusInFirestore } from '../services/questService';
 import { toast } from 'react-toastify';
 
 interface QuestModalProps {
-  quest: Quest;
+  quest: Quest | any;
   onClose: () => void;
 }
 
 const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
-  const { updateQuestStatus } = useSideQuest();
+  const { currentUser } = useSideQuest();
   const [localStatus, setLocalStatus] = useState<Quest['status']>(quest.status);
   const [proofUploaded, setProofUploaded] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleAccept = () => {
-    updateQuestStatus(quest.id, 'In Progress');
-    setLocalStatus('In Progress');
-    toast.success('QUEST ACCEPTED! LFG 🚀');
+  const locName = quest.location?.name ?? quest.locationZone ?? 'Campus';
+  const rewardAmount = quest.reward?.amount ?? quest.rewardAmount ?? 0;
+  const rewardType = quest.reward?.type ?? quest.rewardType ?? 'Coins';
+  const timeLimit = quest.timeLimit ?? quest.timeLimitStr ?? '2 hours';
+  const posterName = quest.poster?.name ?? quest.posterName ?? 'Anonymous Student';
+  const posterLevel = quest.poster?.level ?? quest.posterLevel ?? 1;
+  const posterAvatar = quest.poster?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(posterName)}`;
+
+  const handleAccept = async () => {
+    if (!quest.id) return;
+    setIsProcessing(true);
+    try {
+      await acceptQuest(quest.id, currentUser.name || 'Alex Hunter');
+      setLocalStatus('In Progress');
+      toast.success('QUEST ACCEPTED! LFG 🚀');
+    } catch (error) {
+      console.error('Failed to accept quest in Firestore:', error);
+      toast.error('Failed to accept quest. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -27,23 +46,37 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
     toast.info('Proof attached 📎');
   };
 
-  const handleSubmit = () => {
-    updateQuestStatus(quest.id, 'Submitted');
-    setLocalStatus('Submitted');
-    toast.success('Sent for review! 🕵️');
-    setTimeout(() => {
-      updateQuestStatus(quest.id, 'Verified & Released');
-      setLocalStatus('Verified & Released');
-      toast.success(`BOUNTY SECURED: ${quest.reward.amount} ${quest.reward.type}! 💸`);
-    }, 2000);
+  const handleSubmit = async () => {
+    if (!quest.id) return;
+    setIsProcessing(true);
+    try {
+      await updateQuestStatusInFirestore(quest.id, 'Submitted');
+      setLocalStatus('Submitted');
+      toast.success('Sent for review! 🕵️');
+      
+      setTimeout(async () => {
+        try {
+          await updateQuestStatusInFirestore(quest.id, 'Verified & Released');
+          setLocalStatus('Verified & Released');
+          toast.success(`BOUNTY SECURED: ${rewardAmount} ${rewardType}! 💸`);
+        } catch (err) {
+          console.error('Failed to verify quest in Firestore:', err);
+        }
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to submit proof in Firestore:', error);
+      toast.error('Failed to submit proof. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-2xl rounded-2xl overflow-hidden relative flex flex-col max-h-[90vh] brutal-border shadow-[8px_8px_0_0_rgba(0,0,0,1)] rotate-[-1deg]">
+      <div className="bg-white w-full max-w-2xl rounded-2xl overflow-hidden relative flex flex-col max-h-[90vh] brutal-border shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
         
         {/* Decorative Tape */}
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-8 bg-yellow-200 opacity-80 rotate-3 border border-black z-20 shadow-[2px_2px_0_0_rgba(0,0,0,1)]"></div>
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-8 bg-yellow-200 opacity-80 border border-black z-20 shadow-[2px_2px_0_0_rgba(0,0,0,1)]"></div>
 
         {/* Header */}
         <div className="p-6 border-b-4 border-black flex justify-between items-start relative bg-[#F3F1EB]">
@@ -70,27 +103,27 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
         {/* Body */}
         <div className="p-6 overflow-y-auto custom-scrollbar bg-white">
           <div className="flex flex-wrap gap-4 mb-8">
-            <div className="flex items-center gap-3 bg-[#60A5FA] p-3 rounded-xl brutal-border brutal-shadow-sm rotate-1 hover:rotate-0">
+            <div className="flex items-center gap-3 bg-[#60A5FA] p-3 rounded-xl brutal-border brutal-shadow-sm">
               <Clock className="w-6 h-6 text-black" strokeWidth={3} />
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-black font-black">Time Limit</p>
-                <p className="text-sm font-bold text-white">{quest.timeLimit}</p>
+                <p className="text-sm font-bold text-white">{timeLimit}</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-3 bg-[#16A34A] p-3 rounded-xl brutal-border brutal-shadow-sm rotate-[-1deg] hover:rotate-0">
+            <div className="flex items-center gap-3 bg-[#16A34A] p-3 rounded-xl brutal-border brutal-shadow-sm">
               <Navigation className="w-6 h-6 text-black" strokeWidth={3} />
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-black font-black">Location</p>
-                <p className="text-sm font-bold text-white">{quest.location.name}</p>
+                <p className="text-sm font-bold text-white">{locName}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 bg-[#EAB308] p-3 rounded-xl brutal-border brutal-shadow-sm rotate-2 hover:rotate-0">
+            <div className="flex items-center gap-3 bg-[#EAB308] p-3 rounded-xl brutal-border brutal-shadow-sm">
               <Award className="w-6 h-6 text-black" strokeWidth={3} />
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-black font-black">Bounty</p>
-                <p className="text-sm font-black text-black">{quest.reward.amount} {quest.reward.type}</p>
+                <p className="text-sm font-black text-black">{rewardAmount} {rewardType}</p>
               </div>
             </div>
           </div>
@@ -106,13 +139,13 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
 
           <div className="mb-8 flex items-center justify-between bg-white border-2 border-dashed border-gray-400 p-4 rounded-xl">
             <div className="flex items-center gap-4">
-              <img src={quest.poster.avatar} alt="poster" className="w-12 h-12 rounded-full border-2 border-black bg-[#C084FC] brutal-shadow-sm" />
+              <img src={posterAvatar} alt="poster" className="w-12 h-12 rounded-full border-2 border-black bg-[#C084FC] brutal-shadow-sm" />
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-gray-500 font-black">Posted By</p>
                 <div className="flex items-center gap-2">
-                  <span className="font-black text-black text-lg">{quest.poster.name}</span>
+                  <span className="font-black text-black text-lg">{posterName}</span>
                   <span className="text-xs bg-black text-white px-2 py-1 rounded-md font-bold">
-                    Lvl {quest.poster.level}
+                    Lvl {posterLevel}
                   </span>
                 </div>
               </div>
@@ -124,9 +157,10 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
             {localStatus === 'Open' && (
               <button 
                 onClick={handleAccept}
-                className="w-full py-5 bg-[#C084FC] hover:bg-black hover:text-white text-black font-black rounded-xl transition-all brutal-border brutal-shadow brutal-shadow-hover text-2xl uppercase tracking-wider flex items-center justify-center gap-3"
+                disabled={isProcessing}
+                className="w-full py-5 bg-[#C084FC] hover:bg-black hover:text-white text-black font-black rounded-xl transition-all brutal-border brutal-shadow brutal-shadow-hover text-2xl uppercase tracking-wider flex items-center justify-center gap-3 disabled:opacity-50"
               >
-                Accept Quest <Shield className="w-6 h-6" strokeWidth={3} />
+                {isProcessing ? 'Accepting...' : 'Accept Quest'} <Shield className="w-6 h-6" strokeWidth={3} />
               </button>
             )}
 
@@ -154,11 +188,11 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
                 </div>
                 <button 
                   onClick={handleSubmit}
-                  disabled={!proofUploaded}
+                  disabled={!proofUploaded || isProcessing}
                   className={`w-full py-5 font-black rounded-xl transition-all text-xl uppercase brutal-border
-                    ${proofUploaded ? 'bg-black text-white brutal-shadow brutal-shadow-hover' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+                    ${proofUploaded && !isProcessing ? 'bg-black text-white brutal-shadow brutal-shadow-hover' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
                 >
-                  Submit For Verification
+                  {isProcessing ? 'Submitting...' : 'Submit For Verification'}
                 </button>
               </div>
             )}
@@ -171,11 +205,11 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
             )}
 
             {localStatus === 'Verified & Released' && (
-              <div className="w-full py-8 bg-[#16A34A] border-2 border-black brutal-shadow rounded-xl flex flex-col items-center justify-center rotate-2">
+              <div className="w-full py-8 bg-[#16A34A] border-2 border-black brutal-shadow rounded-xl flex flex-col items-center justify-center">
                 <CheckCircle2 className="w-16 h-16 text-white mb-4" strokeWidth={3} />
                 <h3 className="text-white font-black text-3xl mb-2 uppercase">Quest Completed!</h3>
                 <p className="text-white font-bold text-lg bg-black px-4 py-2 rounded-xl border-2 border-white">
-                  +{quest.reward.amount} {quest.reward.type}
+                  +{rewardAmount} {rewardType}
                 </p>
               </div>
             )}

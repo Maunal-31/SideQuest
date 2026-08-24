@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import type { Quest, QuestCategory } from '../types';
+import type { QuestCategory } from '../types';
 import { CAMPUS_ZONES } from '../data/mockData';
-import { X, MapPin } from 'lucide-react';
+import { X, MapPin, Loader2 } from 'lucide-react';
 import { useSideQuest } from '../context/SideQuestContext';
+import { createQuest } from '../services/questService';
 import { toast } from 'react-toastify';
 
 interface PostQuestModalProps {
@@ -10,7 +11,7 @@ interface PostQuestModalProps {
 }
 
 const PostQuestModal: React.FC<PostQuestModalProps> = ({ onClose }) => {
-  const { addQuest, currentUser } = useSideQuest();
+  const { currentUser } = useSideQuest();
   
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -20,48 +21,72 @@ const PostQuestModal: React.FC<PostQuestModalProps> = ({ onClose }) => {
   const [rewardType, setRewardType] = useState<'XP' | 'Coins' | 'Rupees' | 'Coffee'>('Coins');
   const [timeLimit, setTimeLimit] = useState('2 hours');
   const [urgency, setUrgency] = useState<'Low' | 'Medium' | 'High' | 'Critical'>('Medium');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setCategory('Quick Favors');
+    setLocationName(Object.keys(CAMPUS_ZONES)[0]);
+    setRewardAmount('100');
+    setRewardType('Coins');
+    setTimeLimit('2 hours');
+    setUrgency('Medium');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const newQuest: Quest = {
-      id: `q${Date.now()}`,
-      title,
-      description,
-      category,
-      location: CAMPUS_ZONES[locationName],
-      reward: {
-        type: rewardType,
-        amount: parseInt(rewardAmount, 10) || 0
-      },
-      timeLimit,
-      urgency,
-      poster: {
-        id: currentUser.id,
-        name: currentUser.name,
-        level: currentUser.level,
-        badge: currentUser.guildRank,
-        avatar: currentUser.avatar
-      },
-      status: 'Open',
-      createdAt: new Date().toISOString(),
-      requiredSkills: []
-    };
-    
-    addQuest(newQuest);
-    toast.success('SideQuest Posted! Hunters will be notified.');
-    onClose();
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const selectedZone = CAMPUS_ZONES[locationName] || {
+        lat: 23.0338,
+        lng: 72.5464,
+        name: locationName
+      };
+
+      await createQuest({
+        title,
+        description,
+        category,
+        locationZone: locationName,
+        lat: selectedZone.lat,
+        lng: selectedZone.lng,
+        rewardType,
+        rewardAmount: parseInt(rewardAmount, 10) || 0,
+        timeLimitStr: timeLimit,
+        urgency,
+        posterName: currentUser.name || 'Alex Hunter',
+        posterLevel: currentUser.level || 15,
+        status: 'Open'
+      });
+
+      toast.success('SideQuest Posted! Hunters will be notified.');
+      resetForm();
+      onClose();
+    } catch (error) {
+      console.error('Failed to create quest in Firestore:', error);
+      toast.error('Failed to post bounty. Please check your connection and try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-2xl rounded-2xl overflow-hidden flex flex-col max-h-[95vh] brutal-border shadow-[8px_8px_0_0_rgba(0,0,0,1)] rotate-[1deg]">
+      <div className="bg-white w-full max-w-2xl rounded-2xl overflow-hidden flex flex-col max-h-[95vh] brutal-border shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
         
         <div className="p-6 border-b-4 border-black flex justify-between items-center bg-[#F472B6]">
           <h2 className="text-3xl font-black text-black uppercase flex items-center gap-2">
             Post a Bounty
           </h2>
-          <button onClick={onClose} className="p-2 bg-white brutal-border brutal-shadow-sm hover:translate-y-1 transition-transform">
+          <button 
+            onClick={onClose} 
+            disabled={isSubmitting}
+            className="p-2 bg-white brutal-border brutal-shadow-sm hover:translate-y-1 transition-transform disabled:opacity-50"
+          >
             <X className="w-6 h-6 text-black" strokeWidth={3} />
           </button>
         </div>
@@ -76,7 +101,8 @@ const PostQuestModal: React.FC<PostQuestModalProps> = ({ onClose }) => {
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 placeholder="e.g. Need jumper wires for IoT Lab"
-                className="w-full bg-gray-50 brutal-border brutal-shadow-sm rounded-xl p-4 text-black font-bold focus:outline-none focus:bg-[#EAB308]/20 transition-all text-lg"
+                disabled={isSubmitting}
+                className="w-full bg-gray-50 brutal-border brutal-shadow-sm rounded-xl p-4 text-black font-bold focus:outline-none focus:bg-[#EAB308]/20 transition-all text-lg disabled:opacity-50"
               />
             </div>
 
@@ -86,7 +112,8 @@ const PostQuestModal: React.FC<PostQuestModalProps> = ({ onClose }) => {
                 <select 
                   value={category}
                   onChange={e => setCategory(e.target.value as QuestCategory)}
-                  className="w-full bg-gray-50 brutal-border brutal-shadow-sm rounded-xl p-4 text-black font-bold focus:outline-none appearance-none"
+                  disabled={isSubmitting}
+                  className="w-full bg-gray-50 brutal-border brutal-shadow-sm rounded-xl p-4 text-black font-bold focus:outline-none appearance-none disabled:opacity-50"
                 >
                   <option>Code/Debugging</option>
                   <option>Hardware/Lab Tools</option>
@@ -102,7 +129,8 @@ const PostQuestModal: React.FC<PostQuestModalProps> = ({ onClose }) => {
                   <select 
                     value={locationName}
                     onChange={e => setLocationName(e.target.value)}
-                    className="w-full bg-gray-50 brutal-border brutal-shadow-sm rounded-xl p-4 text-black font-bold focus:outline-none appearance-none pl-12"
+                    disabled={isSubmitting}
+                    className="w-full bg-gray-50 brutal-border brutal-shadow-sm rounded-xl p-4 text-black font-bold focus:outline-none appearance-none pl-12 disabled:opacity-50"
                   >
                     {Object.keys(CAMPUS_ZONES).map(zone => (
                       <option key={zone} value={zone}>{CAMPUS_ZONES[zone].name}</option>
@@ -122,12 +150,14 @@ const PostQuestModal: React.FC<PostQuestModalProps> = ({ onClose }) => {
                     type="number" 
                     value={rewardAmount}
                     onChange={e => setRewardAmount(e.target.value)}
-                    className="w-full bg-gray-50 brutal-border brutal-shadow-sm rounded-xl p-4 text-black font-black text-lg focus:outline-none"
+                    disabled={isSubmitting}
+                    className="w-full bg-gray-50 brutal-border brutal-shadow-sm rounded-xl p-4 text-black font-black text-lg focus:outline-none disabled:opacity-50"
                   />
                   <select 
                     value={rewardType}
                     onChange={e => setRewardType(e.target.value as any)}
-                    className="w-32 bg-[#C084FC] brutal-border brutal-shadow-sm rounded-xl p-4 text-black font-black focus:outline-none appearance-none uppercase"
+                    disabled={isSubmitting}
+                    className="w-32 bg-[#C084FC] brutal-border brutal-shadow-sm rounded-xl p-4 text-black font-black focus:outline-none appearance-none uppercase disabled:opacity-50"
                   >
                     <option>Coins</option>
                     <option>XP</option>
@@ -142,7 +172,8 @@ const PostQuestModal: React.FC<PostQuestModalProps> = ({ onClose }) => {
                 <select 
                   value={urgency}
                   onChange={e => setUrgency(e.target.value as any)}
-                  className="w-full bg-gray-50 brutal-border brutal-shadow-sm rounded-xl p-4 text-black font-bold focus:outline-none appearance-none"
+                  disabled={isSubmitting}
+                  className="w-full bg-gray-50 brutal-border brutal-shadow-sm rounded-xl p-4 text-black font-bold focus:outline-none appearance-none disabled:opacity-50"
                 >
                   <option value="Low">Low</option>
                   <option value="Medium">Medium</option>
@@ -160,7 +191,8 @@ const PostQuestModal: React.FC<PostQuestModalProps> = ({ onClose }) => {
                 onChange={e => setDescription(e.target.value)}
                 rows={4}
                 placeholder="Explain what you need in detail..."
-                className="w-full bg-gray-50 brutal-border brutal-shadow-sm rounded-xl p-4 text-black font-medium focus:outline-none resize-none text-lg"
+                disabled={isSubmitting}
+                className="w-full bg-gray-50 brutal-border brutal-shadow-sm rounded-xl p-4 text-black font-medium focus:outline-none resize-none text-lg disabled:opacity-50"
               ></textarea>
             </div>
             
@@ -172,7 +204,8 @@ const PostQuestModal: React.FC<PostQuestModalProps> = ({ onClose }) => {
                 value={timeLimit}
                 onChange={e => setTimeLimit(e.target.value)}
                 placeholder="e.g. 2 hours, 30 mins"
-                className="w-full bg-gray-50 brutal-border brutal-shadow-sm rounded-xl p-4 text-black font-bold focus:outline-none text-lg"
+                disabled={isSubmitting}
+                className="w-full bg-gray-50 brutal-border brutal-shadow-sm rounded-xl p-4 text-black font-bold focus:outline-none text-lg disabled:opacity-50"
               />
             </div>
           </form>
@@ -182,16 +215,25 @@ const PostQuestModal: React.FC<PostQuestModalProps> = ({ onClose }) => {
           <button 
             type="button"
             onClick={onClose}
-            className="px-6 py-3 rounded-xl font-bold text-black brutal-border hover:bg-gray-200 transition-colors uppercase"
+            disabled={isSubmitting}
+            className="px-6 py-3 rounded-xl font-bold text-black brutal-border hover:bg-gray-200 transition-colors uppercase disabled:opacity-50"
           >
             Cancel
           </button>
           <button 
             type="submit"
             form="post-quest-form"
-            className="px-8 py-3 bg-[#60A5FA] hover:bg-black hover:text-white text-black font-black uppercase tracking-wider text-lg rounded-xl transition-all brutal-border brutal-shadow brutal-shadow-hover"
+            disabled={isSubmitting}
+            className="px-8 py-3 bg-[#60A5FA] hover:bg-black hover:text-white text-black font-black uppercase tracking-wider text-lg rounded-xl transition-all brutal-border brutal-shadow brutal-shadow-hover flex items-center gap-2 disabled:opacity-50"
           >
-            Post Bounty
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Posting...
+              </>
+            ) : (
+              'Post Bounty'
+            )}
           </button>
         </div>
 

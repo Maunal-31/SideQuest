@@ -17,7 +17,7 @@ const Profile: React.FC = () => {
         {/* Left Column: User Stats */}
         <div className="md:col-span-1 space-y-8">
           
-          <div className="bg-[#60A5FA] rounded-2xl p-6 text-center relative brutal-border brutal-shadow rotate-[-1deg]">
+          <div className="bg-[#60A5FA] rounded-2xl p-6 text-center relative brutal-border brutal-shadow">
             
             <button className="absolute top-4 right-4 z-10 p-2 text-black bg-white brutal-border brutal-shadow-sm hover:translate-y-1 hover:shadow-none transition-all rounded-full">
               <Settings className="w-5 h-5" strokeWidth={3} />
@@ -31,8 +31,8 @@ const Profile: React.FC = () => {
                 </div>
               </div>
               
-              <h2 className="text-3xl font-black text-black mb-1 uppercase bg-white px-2 py-1 rounded brutal-border rotate-2">{currentUser.name}</h2>
-              <p className="text-black bg-[#C084FC] px-3 py-1 rounded-md brutal-border brutal-shadow-sm text-sm font-black uppercase mt-2 mb-6 rotate-[-2deg]">{currentUser.guildRank}</p>
+              <h2 className="text-3xl font-black text-black mb-1 uppercase bg-white px-2 py-1 rounded brutal-border">{currentUser.name}</h2>
+              <p className="text-black bg-[#C084FC] px-3 py-1 rounded-md brutal-border brutal-shadow-sm text-sm font-black uppercase mt-2 mb-6">{currentUser.guildRank}</p>
 
               <div className="w-full bg-white rounded-xl h-6 mb-2 brutal-border overflow-hidden relative">
                 <div 
@@ -59,7 +59,7 @@ const Profile: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white brutal-border brutal-shadow rounded-2xl p-6 rotate-[1deg]">
+          <div className="bg-white brutal-border brutal-shadow rounded-2xl p-6">
             <h3 className="text-xl uppercase tracking-wider text-black font-black mb-6 flex items-center gap-2 border-b-4 border-black pb-2">
               <Award className="w-6 h-6 fill-[#EAB308]" strokeWidth={2} /> Badges
             </h3>
@@ -116,7 +116,7 @@ const Profile: React.FC = () => {
                   <QuestCard key={quest.id} quest={quest} onClick={() => {}} />
                 ))
               ) : (
-                <div className="col-span-full text-center py-20 text-black bg-white rounded-2xl brutal-border brutal-shadow rotate-[-1deg]">
+                <div className="col-span-full text-center py-20 text-black bg-white rounded-2xl brutal-border brutal-shadow">
                   <Shield className="w-16 h-16 mx-auto mb-4 text-gray-300" strokeWidth={2} />
                   <p className="text-2xl font-black uppercase mb-2">No Active Quests</p>
                   <p className="font-bold text-gray-500">Check the radar to find bounties to hunt!</p>
@@ -130,7 +130,7 @@ const Profile: React.FC = () => {
                   <QuestCard key={quest.id} quest={quest} onClick={() => {}} />
                 ))
               ) : (
-                <div className="col-span-full text-center py-20 text-black bg-white rounded-2xl brutal-border brutal-shadow rotate-[1deg]">
+                <div className="col-span-full text-center py-20 text-black bg-white rounded-2xl brutal-border brutal-shadow">
                   <p className="text-2xl font-black uppercase mb-2">No Posted Quests</p>
                 </div>
               )
