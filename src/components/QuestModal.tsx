@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { Quest } from '../types';
 import { getCategoryColor, getUrgencyColor } from '../utils/colors';
 import { X, Clock, Navigation, Award, Shield, CheckCircle2, UploadCloud } from 'lucide-react';
-import { useSideQuest } from '../context/SideQuestContext';
+import { useAuth } from '../context/AuthContext';
 import { acceptQuest, updateQuestStatusInFirestore } from '../services/questService';
 import { toast } from 'react-toastify';
 
@@ -12,12 +12,12 @@ interface QuestModalProps {
 }
 
 const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
-  const { currentUser } = useSideQuest();
+  const { currentUser: authUser, userProfile } = useAuth();
   const [localStatus, setLocalStatus] = useState<Quest['status']>(quest.status);
   const [proofUploaded, setProofUploaded] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const locName = quest.location?.name ?? quest.locationZone ?? 'Campus';
+  const locName = quest.location?.name ?? quest.locationZone ?? quest.locationName ?? 'Campus';
   const rewardAmount = quest.reward?.amount ?? quest.rewardAmount ?? 0;
   const rewardType = quest.reward?.type ?? quest.rewardType ?? 'Coins';
   const timeLimit = quest.timeLimit ?? quest.timeLimitStr ?? '2 hours';
@@ -29,7 +29,9 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
     if (!quest.id) return;
     setIsProcessing(true);
     try {
-      await acceptQuest(quest.id, currentUser.name || 'Alex Hunter');
+      const hunterId = authUser?.uid || '';
+      const hunterName = userProfile?.name || authUser?.displayName || 'Alex Hunter';
+      await acceptQuest(quest.id, hunterId, hunterName);
       setLocalStatus('In Progress');
       toast.success('QUEST ACCEPTED! LFG 🚀');
     } catch (error) {

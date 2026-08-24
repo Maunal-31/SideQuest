@@ -11,24 +11,36 @@ export interface Quest {
   id: string;
   title: string;
   description: string;
-  category: QuestCategory;
-  location: Location;
-  reward: {
-    type: 'XP' | 'Coins' | 'Rupees' | 'Coffee';
+  category: QuestCategory | string;
+  location?: Location;
+  locationName?: string;
+  locationZone?: string;
+  lat?: number;
+  lng?: number;
+  reward?: {
+    type: 'XP' | 'Coins' | 'Rupees' | 'Coffee' | string;
     amount: number;
   };
-  timeLimit: string; // e.g., '2 hours'
-  urgency: 'Low' | 'Medium' | 'High' | 'Critical';
-  poster: {
+  rewardType?: string;
+  rewardAmount?: number;
+  timeLimit?: string;
+  timeLimitStr?: string;
+  urgency: 'Low' | 'Medium' | 'High' | 'Critical' | string;
+  poster?: {
     id: string;
     name: string;
     level: number;
-    badge: string;
-    avatar: string;
+    badge?: string;
+    avatar?: string;
   };
+  posterId?: string;
+  posterName?: string;
+  posterLevel?: number;
+  hunterId?: string | null;
+  hunterName?: string;
   status: QuestStatus;
-  createdAt: string;
-  requiredSkills: string[];
+  createdAt?: any;
+  requiredSkills?: string[];
 }
 
 export interface UserProfile {

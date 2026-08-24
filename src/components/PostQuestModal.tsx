@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { QuestCategory } from '../types';
 import { CAMPUS_ZONES } from '../data/mockData';
 import { X, MapPin, Loader2 } from 'lucide-react';
-import { useSideQuest } from '../context/SideQuestContext';
+import { useAuth } from '../context/AuthContext';
 import { createQuest } from '../services/questService';
 import { toast } from 'react-toastify';
 
@@ -11,7 +11,7 @@ interface PostQuestModalProps {
 }
 
 const PostQuestModal: React.FC<PostQuestModalProps> = ({ onClose }) => {
-  const { currentUser } = useSideQuest();
+  const { currentUser, userProfile } = useAuth();
   
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -51,16 +51,18 @@ const PostQuestModal: React.FC<PostQuestModalProps> = ({ onClose }) => {
         title,
         description,
         category,
-        locationZone: locationName,
+        urgency,
+        status: 'Open',
+        locationName: locationName,
         lat: selectedZone.lat,
         lng: selectedZone.lng,
         rewardType,
         rewardAmount: parseInt(rewardAmount, 10) || 0,
         timeLimitStr: timeLimit,
-        urgency,
-        posterName: currentUser.name || 'Alex Hunter',
-        posterLevel: currentUser.level || 15,
-        status: 'Open'
+        posterId: currentUser?.uid || '',
+        posterName: userProfile?.name || currentUser?.displayName || 'Anonymous Hunter',
+        posterLevel: userProfile?.level || 1,
+        hunterId: null
       });
 
       toast.success('SideQuest Posted! Hunters will be notified.');

@@ -4,22 +4,25 @@ import { db } from "../firebase";
 export interface Quest {
   id?: string;
   title: string;
+  description: string;
   category: string;
-  locationZone: string;
+  urgency: "Low" | "Medium" | "High" | "Critical" | string;
+  status: "Open" | "In Progress" | "Submitted" | "Verified & Released";
+  locationName: string;
+  locationZone?: string;
   lat: number;
   lng: number;
   rewardType: string;
   rewardAmount: number;
-  urgency: "Low" | "Medium" | "High" | "Critical";
   timeLimitStr: string;
-  description: string;
-  status: "Open" | "In Progress" | "Submitted" | "Verified & Released";
+  posterId: string;
   posterName: string;
   posterLevel: number;
-  createdAt?: any;
+  hunterId: string | null;
   hunterName?: string;
+  createdAt?: any;
 
-  // Nested convenience properties for UI components compatibility
+  // Convenience nested properties for UI components compatibility
   location?: {
     lat: number;
     lng: number;
@@ -46,8 +49,21 @@ export interface Quest {
 export const createQuest = async (questData: Omit<Quest, "id" | "createdAt">) => {
   const questsRef = collection(db, "quests");
   return await addDoc(questsRef, {
-    ...questData,
+    title: questData.title,
+    description: questData.description,
+    category: questData.category,
+    urgency: questData.urgency,
     status: questData.status || "Open",
+    locationName: questData.locationName || questData.locationZone || "Campus",
+    lat: questData.lat,
+    lng: questData.lng,
+    rewardType: questData.rewardType,
+    rewardAmount: Number(questData.rewardAmount) || 0,
+    timeLimitStr: questData.timeLimitStr,
+    posterId: questData.posterId,
+    posterName: questData.posterName,
+    posterLevel: Number(questData.posterLevel) || 1,
+    hunterId: questData.hunterId ?? null,
     createdAt: serverTimestamp()
   });
 };
@@ -64,36 +80,40 @@ export const subscribeToQuests = (callback: (quests: Quest[]) => void) => {
       const data = docSnap.data();
       const lat = data.lat ?? data.location?.lat ?? 23.0338;
       const lng = data.lng ?? data.location?.lng ?? 72.5464;
-      const locationZone = data.locationZone ?? data.location?.name ?? "Campus";
+      const locationName = data.locationName ?? data.locationZone ?? data.location?.name ?? "Campus";
       const rewardType = data.rewardType ?? data.reward?.type ?? "Coins";
       const rewardAmount = data.rewardAmount ?? data.reward?.amount ?? 0;
       const timeLimitStr = data.timeLimitStr ?? data.timeLimit ?? "2 hours";
       const posterName = data.posterName ?? data.poster?.name ?? "Anonymous Student";
       const posterLevel = data.posterLevel ?? data.poster?.level ?? 1;
+      const posterId = data.posterId ?? data.poster?.id ?? "";
 
       return {
         id: docSnap.id,
         title: data.title || "",
+        description: data.description || "",
         category: data.category || "Quick Favors",
-        locationZone,
+        urgency: data.urgency || "Medium",
+        status: data.status || "Open",
+        locationName,
+        locationZone: locationName,
         lat,
         lng,
         rewardType,
         rewardAmount,
-        urgency: data.urgency || "Medium",
         timeLimitStr,
-        description: data.description || "",
-        status: data.status || "Open",
+        posterId,
         posterName,
         posterLevel,
-        createdAt: data.createdAt,
+        hunterId: data.hunterId ?? null,
         hunterName: data.hunterName,
+        createdAt: data.createdAt,
 
         // Backwards compatibility mappings for UI components
         location: {
           lat,
           lng,
-          name: locationZone
+          name: locationName
         },
         reward: {
           type: rewardType,
@@ -101,7 +121,7 @@ export const subscribeToQuests = (callback: (quests: Quest[]) => void) => {
         },
         timeLimit: timeLimitStr,
         poster: {
-          id: data.poster?.id || "u0",
+          id: posterId,
           name: posterName,
           level: posterLevel,
           badge: data.poster?.badge || "Student",
@@ -117,11 +137,15 @@ export const subscribeToQuests = (callback: (quests: Quest[]) => void) => {
 /**
  * 3. Accept a quest document in Firestore
  */
-export const acceptQuest = async (questId: string, hunterName: string) => {
+export const acceptQuest = async (questId: string, hunterIdOrName: string, hunterName?: string) => {
   const questDoc = doc(db, "quests", questId);
+  const actualHunterId = hunterName ? hunterIdOrName : null;
+  const actualHunterName = hunterName || hunterIdOrName;
+
   return await updateDoc(questDoc, {
     status: "In Progress",
-    hunterName: hunterName
+    hunterId: actualHunterId,
+    hunterName: actualHunterName
   });
 };
 

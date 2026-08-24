@@ -8,7 +8,7 @@ interface SideQuestContextType {
   currentUser: UserProfile;
   addQuest: (quest: Quest) => void;
   updateQuestStatus: (id: string, status: Quest['status']) => void;
-  acceptQuest: (id: string, hunterName: string) => Promise<void>;
+  acceptQuest: (id: string, hunterIdOrName: string, hunterName?: string) => Promise<void>;
   activeMapPin: string | null;
   setActiveMapPin: (id: string | null) => void;
   flyToLocation: { lat: number; lng: number } | null;
@@ -39,8 +39,8 @@ export const SideQuestProvider: React.FC<{ children: ReactNode }> = ({ children 
     updateQuestStatusInFirestore(id, status).catch(console.error);
   };
 
-  const acceptQuest = async (id: string, hunterName: string) => {
-    await acceptQuestService(id, hunterName);
+  const acceptQuest = async (id: string, hunterIdOrName: string, hunterName?: string) => {
+    await acceptQuestService(id, hunterIdOrName, hunterName);
   };
 
   return (

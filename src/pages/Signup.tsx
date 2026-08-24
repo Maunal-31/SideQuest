@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
+import { createUserProfile } from '../services/userService';
 import { Shield, Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -27,14 +28,17 @@ const Signup: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // 1. Create account
+      // 1. Create Firebase Auth account
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
       // 2. Update display name
       await updateProfile(user, { displayName: name });
 
-      // 3. Keep user logged in & redirect directly to main Dashboard
+      // 3. Automatically create User Profile document in Firestore users collection
+      await createUserProfile(user, { name });
+
+      // 4. Keep user logged in & redirect directly to main Dashboard
       toast.success(`Welcome to SideQuest, ${name}! 🚀`);
       navigate('/');
     } catch (error: any) {
@@ -57,6 +61,9 @@ const Signup: React.FC = () => {
     setIsGoogleSubmitting(true);
     try {
       const result = await signInWithPopup(auth, googleProvider);
+      if (result.user) {
+        await createUserProfile(result.user);
+      }
       toast.success(`Welcome to SideQuest, ${result.user.displayName || 'Hunter'}! 🚀`);
       navigate('/');
     } catch (error: any) {

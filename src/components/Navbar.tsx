@@ -1,13 +1,11 @@
 import React from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { Sparkles, Trophy, User as UserIcon, Crosshair, LogOut } from 'lucide-react';
-import { useSideQuest } from '../context/SideQuestContext';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 
 const Navbar: React.FC = () => {
-  const { currentUser: mockUser } = useSideQuest();
-  const { currentUser: authUser, logout } = useAuth();
+  const { currentUser: authUser, userProfile, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -20,8 +18,9 @@ const Navbar: React.FC = () => {
     }
   };
 
-  const displayName = authUser?.displayName || authUser?.email?.split('@')[0] || mockUser.name;
-  const avatarUrl = authUser?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayName)}`;
+  const displayName = userProfile?.name || authUser?.displayName || authUser?.email?.split('@')[0] || 'Hunter';
+  const userCoins = userProfile?.coins ?? 0;
+  const avatarUrl = userProfile?.avatarUrl || authUser?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayName)}`;
 
   return (
     <nav className="fixed top-0 w-full z-40 px-4 md:px-8 py-4 pointer-events-none">
@@ -71,10 +70,10 @@ const Navbar: React.FC = () => {
               <div className="flex items-center gap-3 brutal-card px-3 py-1.5 bg-white">
                 <div className="hidden md:flex flex-col items-end">
                   <span className="text-sm font-bold text-black">{displayName}</span>
-                  <span className="text-xs text-[#EA580C] font-black">{mockUser.coins} Coins</span>
+                  <span className="text-xs text-[#EA580C] font-black">{userCoins} Coins</span>
                 </div>
                 <div className="relative">
-                  <img src={avatarUrl} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-black bg-[#60A5FA]" />
+                  <img src={avatarUrl} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-black bg-[#60A5FA] object-cover" />
                   <div className="absolute -bottom-1 -right-1 bg-[#16A34A] w-4 h-4 rounded-full border border-black z-10"></div>
                 </div>
                 <button
