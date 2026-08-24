@@ -106,7 +106,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Feed */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-6 pr-2 pb-24 md:pb-8 pt-4">
+          <div id="tour-feed" className="flex-1 overflow-y-auto custom-scrollbar space-y-6 pr-2 pb-24 md:pb-8 pt-4">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-12 text-black font-bold">
                 <Loader2 className="w-10 h-10 animate-spin mb-3 text-[#EA580C]" strokeWidth={3} />

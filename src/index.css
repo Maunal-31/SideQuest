@@ -1,94 +1,606 @@
 @import "tailwindcss";
 
+
+
 @theme {
+
   --color-brand-bg: #F3F1EB;
+
 }
+
+
 
 @layer base {
+
   body {
+
     @apply text-black overflow-x-hidden bg-[#F3F1EB];
+
     /* Dotted background */
+
     background-image: radial-gradient(#000000 1px, transparent 1px);
+
     background-size: 20px 20px;
+
     background-position: 0 0;
+
   }
+
 }
+
+
 
 @layer utilities {
+
   .brutal-border {
+
     @apply border-2 border-black;
+
   }
+
+
+
   .brutal-shadow {
-    @apply shadow-[4px_4px_0_0_rgba(0,0,0,1)];
+
+    @apply shadow-[4px_4px_0_0_#000];
+
   }
+
+
+
   .brutal-shadow-sm {
-    @apply shadow-[2px_2px_0_0_rgba(0,0,0,1)];
+
+    @apply shadow-[2px_2px_0_0_#000];
+
   }
+
+
+
   .brutal-shadow-hover:hover {
+
     @apply shadow-none translate-x-[4px] translate-y-[4px];
+
   }
+
+
+
   .brutal-card {
-    @apply border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] bg-white;
+
+    @apply border-2 border-black shadow-[4px_4px_0_0_#000] bg-white;
+
   }
+
 }
+
+
 
 /* Map specific overrides */
+
 .leaflet-container {
+
   width: 100%;
+
   height: 100%;
+
   z-index: 10;
+
   background-color: #F3F1EB;
+
 }
+
+
 
 .custom-leaflet-icon {
+
   background: transparent;
+
   border: none;
+
 }
+
+
 
 .quest-marker-pulse {
+
   animation: bounce-marker 1s infinite alternate;
+
 }
+
+
 
 @keyframes bounce-marker {
+
   0% {
+
     transform: translateY(0);
+
   }
+
+
+
   100% {
+
     transform: translateY(-10px);
+
   }
+
 }
+
+
 
 /* Scrollbar customization */
+
 .custom-scrollbar::-webkit-scrollbar {
+
   width: 8px;
+
   height: 8px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #000;
-  border-radius: 0;
-  border: 1px solid #000;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #333;
+
 }
 
-.custom-popup .leaflet-popup-content-wrapper {
-  background-color: #fff;
-  color: #000;
-  border: 2px solid #000;
+
+
+.custom-scrollbar::-webkit-scrollbar-track {
+
+  background: transparent;
+
+}
+
+
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+
+  background: #000;
+
   border-radius: 0;
-  box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 1);
-  padding: 0;
+
+  border: 1px solid #000;
+
 }
-.custom-popup .leaflet-popup-tip {
+
+
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+
+  background: #333;
+
+}
+
+
+
+.custom-popup .leaflet-popup-content-wrapper {
+
   background-color: #fff;
-  border-bottom: 2px solid #000;
-  border-right: 2px solid #000;
+
+  color: #000;
+
+  border: 2px solid #000;
+
+  border-radius: 0;
+
+  box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 1);
+
+  padding: 0;
+
 }
+
+
+
+.custom-popup .leaflet-popup-tip {
+
+  background-color: #fff;
+
+  border-bottom: 2px solid #000;
+
+  border-right: 2px solid #000;
+
+}
+
+
+
 .custom-popup .leaflet-popup-close-button {
+
   color: #000 !important;
+
   font-weight: bold;
+
+}
+
+
+
+/* ============================================================
+
+   Driver.js Overrides — Gamified Speech Bubble + Mascot
+
+   ============================================================ */
+
+
+
+/* ── 1. Body state: lock scroll + kill dotted background ─── */
+
+body.driver-active {
+
+  overflow: hidden !important;
+
+  /* Kill the dotted pattern so it does not bleed through the overlay */
+
+  background-image: none !important;
+
+}
+
+
+
+/* ── 2. Overlay: semi-transparent, not a full blackout ────── */
+
+.driver-overlay {
+
+  background: rgba(0, 0, 0, 0.65) !important;
+
+}
+
+
+
+/* ── 3. Popover shell ──────────────────────────────────────── */
+
+/*
+
+  IMPORTANT: Do NOT set margin-right here. driver.js recalculates
+
+  the popover position based on its computed size. Adding margin-right
+
+  changes the effective bounding box, causing it to drop to the bottom.
+
+  overflow:visible is the only thing needed to let the mascot escape.
+
+*/
+
+.driver-popover {
+
+  overflow: visible !important;
+
+  border-radius: 12px !important;
+
+  max-width: 360px !important;
+
+}
+
+
+
+/* Allow inner content to also overflow so the mascot is not clipped */
+
+.driver-popover-title,
+
+.driver-popover-content,
+
+.driver-popover-description {
+
+  overflow: visible !important;
+
+}
+
+
+
+/* ── 4. Mascot image ───────────────────────────────────────── */
+
+/*
+
+  ANIMATION FIX:
+
+  Previously, `transform: translateY(-50%)` was set as a static property
+
+  AND the @keyframes were also setting `transform`. CSS only applies ONE
+
+  transform at a time, so the animation overwrote the centering offset,
+
+  making the mascot jump to an uncentered position.
+
+
+
+  THE FIX: Remove the static transform entirely. Instead, bake the
+
+  -50% centering offset INTO every keyframe using calc(). Now there is
+
+  only one transform in play at all times — the animated one.
+
+*/
+
+.driver-popover-title img.mascot-avatar {
+
+  position: absolute !important;
+
+  top: 50% !important;
+
+  right: -125px !important;
+
+  height: 140px !important;
+
+  width: auto !important;
+
+  background: transparent !important;
+
+  border: none !important;
+
+  margin: 0 !important;
+
+  padding: 0 !important;
+
+  display: block !important;
+
+  /* NO static transform here — the keyframes handle it */
+
+  pointer-events: none !important;
+
+  z-index: 9999 !important;
+
+  will-change: transform;
+
+  animation: mascotFloat 2.5s ease-in-out infinite;
+
+}
+
+
+
+/* ── 5. Desktop float animation (centering baked into keyframes) ─ */
+
+@keyframes mascotFloat {
+
+  0%,
+
+  100% {
+
+    /* Centered at top:50%, no extra offset */
+
+    transform: translateY(-50%);
+
+  }
+
+  50% {
+
+    /* Centered at top:50%, floated up 8px — one transform, no conflict */
+
+    transform: translateY(calc(-50% - 8px));
+
+  }
+
+}
+
+
+
+/* ── 6. Speech bubble tail (desktop only) ──────────────────── */
+
+/*
+
+  pointer-events: none is critical here. Without it, the pseudo-element
+
+  creates an invisible hit area that blocks clicks on the close button.
+
+*/
+
+.driver-popover::before {
+
+  content: none;
+
+  pointer-events: none !important;
+
+}
+
+
+
+@media (min-width: 769px) {
+
+  .driver-popover::before {
+
+    content: '' !important;
+
+    position: absolute !important;
+
+    top: 28px !important;
+
+    right: -13px !important;
+
+    border-width: 13px 0 13px 13px !important;
+
+    border-style: solid !important;
+
+    border-color: transparent transparent transparent #ffffff !important;
+
+    pointer-events: none !important;
+
+    z-index: 1 !important;
+
+  }
+
+}
+
+
+
+/* ── 7. Close button: always on top, always clickable ─────── */
+
+.driver-popover-close-btn {
+
+  position: relative !important;
+
+  z-index: 99999999 !important;
+
+  pointer-events: auto !important;
+
+  cursor: pointer !important;
+
+}
+
+
+
+/* ── 8. Mobile: mascot hops above the popover ────────────── */
+
+@media (max-width: 768px) {
+
+  .driver-popover {
+
+    /* Vertical room for the mascot sitting above the box */
+
+    margin-top: 90px !important;
+
+  }
+
+
+
+  .driver-popover-title img.mascot-avatar {
+
+    top: -85px !important;
+
+    right: 8px !important;
+
+    height: 90px !important;
+
+    /* Override with mobile animation (no centering offset needed) */
+
+    animation: mascotFloatMobile 2.5s ease-in-out infinite !important;
+
+  }
+
+
+
+  /* Hide the right-pointing tail on mobile */
+
+  .driver-popover::before {
+
+    content: none !important;
+
+  }
+
+}
+
+
+
+/* ── 9. Mobile float animation ────────────────────────────── */
+
+@keyframes mascotFloatMobile {
+
+  0%,
+
+  100% {
+
+    transform: translateY(0px);
+
+  }
+
+  50% {
+
+    transform: translateY(-8px);
+
+  }
+
+}
+
+
+
+/* -- 10. Active Element Highlight Glow -----------------------
+
+   Makes the targeted element "pop" sharply against the dark overlay.
+
+   Layered box-shadow: tight white ring ? amber bloom ? soft diffuse glow.
+
+   The pulsing @keyframes makes it feel alive / gamified.
+
+   ----------------------------------------------------------- */
+
+/* -- 10. Active Element Highlight Glow (UNIFORM, ALL STEPS) --
+
+   Root cause of dim steps: partial-opacity rgba() values interact
+
+   differently with each element's stacking context — a semi-transparent
+
+   amber glow is bright on the dark map but nearly invisible on a
+
+   lighter card background. Fix: use fully opaque white (opacity=1) so
+
+   the glow is always maximally visible regardless of what is behind it.
+
+   ----------------------------------------------------------- */
+
+.driver-active-element {
+
+  /* Layer 1: solid 5px white ring — always crisp and visible */
+
+  /* Layer 2: broad soft bloom — adds depth */
+
+  box-shadow:
+
+    0 0 0 5px rgba(255, 255, 255, 1),
+
+    0 0 25px 8px rgba(255, 255, 255, 0.8) !important;
+
+  z-index: 100005 !important;
+
+  position: relative !important;
+  
+  isolation: isolate !important;
+
+  /* Breathing pulse so it feels alive */
+
+  animation: elementGlow 1.8s ease-in-out infinite !important;
+
+  /* Inherit border-radius so ring matches rounded elements */
+
+  border-radius: inherit;
+
+}
+
+
+
+@keyframes elementGlow {
+
+  0%,
+  100% {
+
+    box-shadow:
+
+      0 0 0 5px rgba(255, 255, 255, 1),
+
+      0 0 25px 8px rgba(255, 255, 255, 0.8);
+
+  }
+
+  50% {
+
+    box-shadow:
+
+      0 0 0 5px rgba(255, 255, 255, 1),
+
+      0 0 40px 14px rgba(255, 255, 255, 0.95);
+
+  }
+
+}
+
+
+
+/* -- 11. Close Button � Position, Clickability & Z-Index ----
+
+   REMINDER: .mascot-avatar AND .driver-popover::before MUST keep
+
+   pointer-events: none !important (already set earlier in this file).
+
+   If those rules are removed, this button will be blocked again.
+
+   ----------------------------------------------------------- */
+
+.driver-popover-close-btn {
+
+  position: absolute !important;
+
+  top: 10px !important;
+
+  right: 15px !important;
+
+  left: auto !important;
+
+  bottom: auto !important;
+
+  z-index: 99999999 !important;
+
+  pointer-events: auto !important;
+
+  cursor: pointer !important;
+
 }

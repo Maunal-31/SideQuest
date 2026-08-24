@@ -61,13 +61,14 @@ const Navbar: React.FC = () => {
           {authUser ? (
             <>
               <button 
+                id="tour-post-btn"
                 onClick={() => document.dispatchEvent(new CustomEvent('open-post-modal'))}
                 className="hidden md:flex items-center gap-2 bg-[#C084FC] hover:bg-black hover:text-white text-black px-4 py-2 rounded-xl brutal-border brutal-shadow-sm brutal-shadow-hover transition-all font-black uppercase text-sm"
               >
                 <Sparkles className="w-4 h-4" /> Post Task
               </button>
               
-              <div className="flex items-center gap-3 brutal-card px-3 py-1.5 bg-white">
+              <div id="tour-stats" className="flex items-center gap-3 brutal-card px-3 py-1.5 bg-white">
                 <div className="hidden md:flex flex-col items-end">
                   <span className="text-sm font-bold text-black">{displayName}</span>
                   <span className="text-xs text-[#EA580C] font-black">{userCoins} Coins</span>

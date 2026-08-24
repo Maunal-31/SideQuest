@@ -1,1 +1,28 @@
 /* App.css */
+
+/* --- Custom Animations --- */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes pinGlow {
+  0% {
+    filter: drop-shadow(0 0 2px #EAB308);
+  }
+
+  100% {
+    filter: drop-shadow(0 0 15px #EAB308) drop-shadow(0 0 20px #EAB308);
+  }
+}
+
+#tour-map.driver-active-element .custom-leaflet-icon {
+  animation: pinGlow 1.5s infinite alternate;
+}

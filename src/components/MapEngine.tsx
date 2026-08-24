@@ -130,7 +130,7 @@ const MapEngine: React.FC<MapEngineProps> = ({ quests: propQuests }) => {
   };
 
   return (
-    <div className="w-full h-full relative z-0">
+    <div id="tour-map" className="w-full h-full relative z-0">
       <MapContainer
         center={CAMPUS_CENTER}
         zoom={17}

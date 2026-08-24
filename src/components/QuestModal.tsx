@@ -158,6 +158,7 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
           <div className="mt-8 pt-6 border-t-4 border-black">
             {localStatus === 'Open' && (
               <button 
+                id="tour-accept-btn"
                 onClick={handleAccept}
                 disabled={isProcessing}
                 className="w-full py-5 bg-[#C084FC] hover:bg-black hover:text-white text-black font-black rounded-xl transition-all brutal-border brutal-shadow brutal-shadow-hover text-2xl uppercase tracking-wider flex items-center justify-center gap-3 disabled:opacity-50"
