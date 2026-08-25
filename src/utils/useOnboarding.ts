@@ -15,8 +15,11 @@ export const startFrogTutorial = () => {
         overlayColor: 'rgba(0, 0, 0, 0.75)',
         stagePadding: 8,
         stageRadius: 16,
+        onDestroyed: () => {
+            driverInstance = null;
+        },
         onDestroyStarted: () => {
-            if (driverInstance && !driverInstance.hasNextStep() || driverInstance.isLastStep()) {
+            if (driverInstance) {
                 driverInstance.destroy();
                 driverInstance = null;
             }
@@ -45,8 +48,8 @@ export const startFrogTutorial = () => {
                 popover: {
                     title: '<img src="/bot-point-removebg-preview.png" class="mascot-avatar" /> Quest-Bot',
                     description: "When you find a task you like, click 'Accept Quest' to lock it in! Once you finish the job, just paste a Google Drive link as proof to claim your bounty.",
-                    side: "bottom",
-                    align: 'center'
+                    side: "right",
+                    align: 'start'
                 }
             },
             {

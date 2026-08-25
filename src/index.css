@@ -314,64 +314,38 @@ body.driver-active {
 
 */
 
-.driver-popover-title img.mascot-avatar {
-
-  position: absolute !important;
-
-  top: 50% !important;
-
-  right: -125px !important;
-
-  height: 140px !important;
-
-  width: auto !important;
-
-  background: transparent !important;
-
-  border: none !important;
-
-  margin: 0 !important;
-
-  padding: 0 !important;
-
-  display: block !important;
-
-  /* NO static transform here — the keyframes handle it */
-
-  pointer-events: none !important;
-
-  z-index: 9999 !important;
-
-  will-change: transform;
-
-  animation: mascotFloat 2.5s ease-in-out infinite;
-
+.driver-popover-title {
+  position: relative !important;
+  z-index: 5 !important;
 }
 
+.driver-popover-title img.mascot-avatar {
+  position: absolute !important;
+  top: 50% !important;
+  left: -115px !important;
+  right: auto !important;
+  height: 125px !important;
+  width: auto !important;
+  background: transparent !important;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+  pointer-events: none !important;
+  z-index: 10 !important;
+  will-change: transform;
+  animation: mascotFloat 2.5s ease-in-out infinite !important;
+}
 
-
-/* ── 5. Desktop float animation (centering baked into keyframes) ─ */
-
+/* ── 5. Desktop float animation ────────────────────────────── */
 @keyframes mascotFloat {
-
   0%,
-
   100% {
-
-    /* Centered at top:50%, no extra offset */
-
     transform: translateY(-50%);
-
   }
-
   50% {
-
-    /* Centered at top:50%, floated up 8px — one transform, no conflict */
-
     transform: translateY(calc(-50% - 8px));
-
   }
-
 }
 
 
@@ -455,17 +429,11 @@ body.driver-active {
 
 
   .driver-popover-title img.mascot-avatar {
-
     top: -85px !important;
-
-    right: 8px !important;
-
+    left: 20px !important;
+    right: auto !important;
     height: 90px !important;
-
-    /* Override with mobile animation (no centering offset needed) */
-
     animation: mascotFloatMobile 2.5s ease-in-out infinite !important;
-
   }
 
 
@@ -520,19 +488,26 @@ body.driver-active {
   opacity: 1 !important;
 }
 
+/* Ensure navbar, header, and fixed/absolute containers do not trap active tour elements behind dark overlay */
+body.driver-active nav,
+body.driver-active header,
+body.driver-active .fixed,
+body.driver-active .absolute {
+  z-index: 100001 !important;
+}
+
 /* Force solid bright background & elevation so NO dark overlay bleeds through any tour section */
 .driver-active-element {
   z-index: 100005 !important;
   position: relative !important;
   isolation: isolate !important;
   opacity: 1 !important;
-  background-color: #ffffff !important;
   filter: none !important;
   box-shadow:
-    0 0 0 5px #EAB308,
-    0 0 35px 12px rgba(234, 179, 8, 0.8),
-    0 20px 40px rgba(0, 0, 0, 0.5) !important;
-  border-radius: 16px !important;
+    0 0 0 4px #EAB308,
+    0 0 30px 10px rgba(234, 179, 8, 0.85),
+    0 15px 35px rgba(0, 0, 0, 0.4) !important;
+  animation: elementGlow 2.5s ease-in-out infinite !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
@@ -540,40 +515,52 @@ body.driver-active {
 .driver-active-element,
 .driver-active-element * {
   opacity: 1 !important;
+  visibility: visible !important;
 }
 
-/* Explicit bright backgrounds for each specific tour section */
+/* Explicit bright backgrounds and exact corner radii for each specific tour section */
 #tour-map.driver-active-element {
-  background-color: #F3F1EB !important;
-}
-
-#tour-feed.driver-active-element {
   background-color: #F3F1EB !important;
   border-radius: 16px !important;
 }
 
-#tour-accept-btn.driver-active-element {
+#tour-feed.driver-active-element {
+  background-color: #F3F1EB !important;
+  border-radius: 24px !important;
+}
+
+div#tour-accept-btn.driver-active-element {
+  background-color: #ffffff !important;
+  border-radius: 16px !important;
+}
+
+button#tour-accept-btn.driver-active-element {
   background-color: #C084FC !important;
+  border-radius: 12px !important;
 }
 
 #tour-post-btn.driver-active-element {
   background-color: #C084FC !important;
+  border-radius: 12px !important;
 }
 
 #tour-stats.driver-active-element {
   background-color: #ffffff !important;
+  border-radius: 12px !important;
 }
 
 @keyframes elementGlow {
   0%, 100% {
     box-shadow:
-      0 0 0 5px #EAB308,
-      0 0 25px 6px rgba(234, 179, 8, 0.6);
+      0 0 0 4px #EAB308,
+      0 0 25px 8px rgba(234, 179, 8, 0.75),
+      0 12px 30px rgba(0, 0, 0, 0.4) !important;
   }
   50% {
     box-shadow:
-      0 0 0 5px #EAB308,
-      0 0 40px 14px rgba(234, 179, 8, 0.9);
+      0 0 0 5px #FACC15,
+      0 0 40px 14px rgba(250, 204, 21, 0.95),
+      0 18px 40px rgba(0, 0, 0, 0.5) !important;
   }
 }
 
@@ -590,21 +577,24 @@ body.driver-active {
    ----------------------------------------------------------- */
 
 .driver-popover-close-btn {
-
   position: absolute !important;
-
-  top: 10px !important;
-
-  right: 15px !important;
-
+  top: 8px !important;
+  right: 12px !important;
   left: auto !important;
-
   bottom: auto !important;
-
+  width: 28px !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   z-index: 99999999 !important;
-
   pointer-events: auto !important;
-
   cursor: pointer !important;
+  opacity: 0.85 !important;
+  transition: opacity 0.2s ease, transform 0.2s ease !important;
+}
 
+.driver-popover-close-btn:hover {
+  opacity: 1 !important;
+  transform: scale(1.15) !important;
 }

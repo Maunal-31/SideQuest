@@ -59,7 +59,7 @@ const Dashboard: React.FC = () => {
           <div className="w-16 h-2 bg-black rounded-full"></div>
         </div>
 
-        <div className="p-4 md:p-8 flex-1 flex flex-col overflow-hidden relative">
+        <div id="tour-feed" className="p-4 md:p-8 flex-1 flex flex-col overflow-hidden relative">
           
           <div className="flex items-center justify-between mb-8 hidden md:flex">
             <h2 className="text-4xl font-black text-black flex items-center gap-3 uppercase">
@@ -106,21 +106,22 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Feed */}
-          <div id="tour-feed" className="flex-1 overflow-y-auto custom-scrollbar space-y-6 pr-2 pb-24 md:pb-8 pt-4">
+          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-6 pr-2 pb-24 md:pb-8 pt-4">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-12 text-black font-bold">
                 <Loader2 className="w-10 h-10 animate-spin mb-3 text-[#EA580C]" strokeWidth={3} />
                 <p className="text-lg uppercase">Scanning Campus Bounties...</p>
               </div>
             ) : filteredQuests.length === 0 ? (
-              <div className="text-center text-black font-bold py-10 bg-white brutal-border brutal-shadow rounded-xl">
+              <div id="tour-accept-btn" className="text-center text-black font-bold py-10 bg-white brutal-border brutal-shadow rounded-xl">
                 <p className="text-2xl mb-2">No quests found!</p>
                 <p>Try adjusting your search or post a new bounty.</p>
               </div>
             ) : (
-              filteredQuests.map(quest => (
+              filteredQuests.map((quest, idx) => (
                 <QuestCard 
-                  key={quest.id} 
+                  key={quest.id || idx} 
+                  id={idx === 0 ? "tour-accept-btn" : undefined}
                   quest={quest} 
                   onClick={() => quest.id && setActiveMapPin(quest.id)}
                 />

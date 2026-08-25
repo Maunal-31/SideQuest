@@ -5,11 +5,12 @@ import { Clock, Navigation, Award } from 'lucide-react';
 import { useSideQuest } from '../context/SideQuestContext';
 
 interface QuestCardProps {
+  id?: string;
   quest: Quest | any;
   onClick: () => void;
 }
 
-const QuestCard: React.FC<QuestCardProps> = ({ quest, onClick }) => {
+const QuestCard: React.FC<QuestCardProps> = ({ id, quest, onClick }) => {
   const { setFlyToLocation } = useSideQuest();
 
   const lat = quest.location?.lat ?? quest.lat ?? 23.0338;
@@ -29,6 +30,7 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, onClick }) => {
 
   return (
     <div 
+      id={id}
       onClick={onClick}
       className="bg-white rounded-xl p-4 cursor-pointer hover:-translate-y-2 transition-transform brutal-border brutal-shadow flex flex-col"
     >
