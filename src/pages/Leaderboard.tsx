@@ -9,6 +9,39 @@ const MOCK_LEADERBOARD = [
   { id: '5', name: 'Amit Kumar', level: 11, xp: 2500, badge: 'Procrastinator', rank: 5, streak: 0 },
 ];
 
+const useCountUp = (end: number, duration: number = 2000) => {
+  const [count, setCount] = React.useState(0);
+
+  React.useEffect(() => {
+    let startTime: number | null = null;
+    let animationFrame: number;
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = timestamp - startTime;
+      const percentage = Math.min(progress / duration, 1);
+      
+      const easeOut = 1 - Math.pow(1 - percentage, 4);
+      setCount(Math.floor(end * easeOut));
+
+      if (percentage < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(animationFrame);
+  }, [end, duration]);
+
+  return count;
+};
+
+const CountUpNumber: React.FC<{ end: number; duration?: number }> = ({ end, duration = 2000 }) => {
+  const count = useCountUp(end, duration);
+  return <>{count}</>;
+};
+
 const Leaderboard: React.FC = () => {
   return (
     <div className="min-h-screen pt-[88px] pb-10 px-4 md:px-8 bg-[var(--color-brand-bg)]">
@@ -41,7 +74,7 @@ const Leaderboard: React.FC = () => {
             <div className="bg-[#EAB308] brutal-border w-28 md:w-36 h-32 rounded-t-xl flex flex-col items-center justify-end pb-4 shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
               <span className="text-5xl font-black text-black mb-1">2</span>
               <span className="text-sm font-black text-black uppercase">{MOCK_LEADERBOARD[1].name.split(' ')[0]}</span>
-              <span className="text-xs font-bold text-black/80">{MOCK_LEADERBOARD[1].xp} XP</span>
+              <span className="text-xs font-bold text-black/80"><CountUpNumber end={MOCK_LEADERBOARD[1].xp} /> XP</span>
             </div>
           </div>
 
@@ -57,7 +90,7 @@ const Leaderboard: React.FC = () => {
             <div className="bg-[#C084FC] brutal-border w-32 md:w-44 h-48 rounded-t-xl flex flex-col items-center justify-end pb-4 shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
               <span className="text-7xl font-black text-black mb-1">1</span>
               <span className="text-lg font-black text-black uppercase">{MOCK_LEADERBOARD[0].name.split(' ')[0]}</span>
-              <span className="text-sm font-bold text-black/80 bg-white/50 px-2 py-1 rounded mt-1">{MOCK_LEADERBOARD[0].xp} XP</span>
+              <span className="text-sm font-bold text-black/80 bg-white/50 px-2 py-1 rounded mt-1"><CountUpNumber end={MOCK_LEADERBOARD[0].xp} /> XP</span>
             </div>
           </div>
 
@@ -72,7 +105,7 @@ const Leaderboard: React.FC = () => {
             <div className="bg-[#60A5FA] brutal-border w-28 md:w-36 h-28 rounded-t-xl flex flex-col items-center justify-end pb-4 shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
               <span className="text-4xl font-black text-black mb-1">3</span>
               <span className="text-sm font-black text-black uppercase">{MOCK_LEADERBOARD[2].name.split(' ')[0]}</span>
-              <span className="text-xs font-bold text-black/80">{MOCK_LEADERBOARD[2].xp} XP</span>
+              <span className="text-xs font-bold text-black/80"><CountUpNumber end={MOCK_LEADERBOARD[2].xp} /> XP</span>
             </div>
           </div>
         </div>
@@ -99,7 +132,7 @@ const Leaderboard: React.FC = () => {
                   <th className="p-4 border-r-2 border-black">Hunter</th>
                   <th className="p-4 border-r-2 border-black text-center hidden md:table-cell">Level</th>
                   <th className="p-4 border-r-2 border-black text-center">Streak</th>
-                  <th className="p-4 text-right">XP</th>
+                  <th className="p-4 text-center">XP</th>
                 </tr>
               </thead>
               <tbody>
@@ -127,7 +160,7 @@ const Leaderboard: React.FC = () => {
                         <span className="text-gray-400 font-bold">-</span>
                       )}
                     </td>
-                    <td className="p-4 text-right text-[#16A34A] font-black text-xl border-l-2 border-black bg-[#16A34A]/5">
+                    <td className="p-4 text-center text-[#16A34A] font-black text-xl border-l-2 border-black bg-[#16A34A]/5">
                       {user.xp}
                     </td>
                   </tr>

@@ -5,6 +5,7 @@ import { X, MapPin, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { createQuest } from '../services/questService';
 import { toast } from 'react-toastify';
+import confetti from 'canvas-confetti';
 
 interface PostQuestModalProps {
   onClose: () => void;
@@ -22,6 +23,7 @@ const PostQuestModal: React.FC<PostQuestModalProps> = ({ onClose }) => {
   const [timeLimit, setTimeLimit] = useState('2 hours');
   const [urgency, setUrgency] = useState<'Low' | 'Medium' | 'High' | 'Critical'>('Medium');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   const resetForm = () => {
     setTitle('');
@@ -66,19 +68,31 @@ const PostQuestModal: React.FC<PostQuestModalProps> = ({ onClose }) => {
       });
 
       toast.success('SideQuest Posted! Hunters will be notified.');
-      resetForm();
-      onClose();
+      
+      setIsClosing(true);
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.8 },
+        colors: ['#F472B6', '#EAB308', '#60A5FA', '#C084FC', '#16A34A']
+      });
+
+      setTimeout(() => {
+        resetForm();
+        setIsSubmitting(false);
+        onClose();
+      }, 700);
+
     } catch (error) {
       console.error('Failed to create quest in Firestore:', error);
       toast.error('Failed to post bounty. Please check your connection and try again.');
-    } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-2xl rounded-2xl overflow-hidden flex flex-col max-h-[95vh] brutal-border shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-500 ${isClosing ? 'opacity-0' : 'opacity-100'}`}>
+      <div className={`bg-white w-full max-w-2xl rounded-2xl overflow-hidden flex flex-col max-h-[95vh] brutal-border shadow-[8px_8px_0_0_rgba(0,0,0,1)] transition-all duration-500 ease-in transform ${isClosing ? 'translate-y-[100vh] opacity-0 rotate-3' : 'translate-y-0 opacity-100 rotate-0'}`}>
         
         <div className="p-6 border-b-4 border-black flex justify-between items-center bg-[#F472B6]">
           <h2 className="text-3xl font-black text-black uppercase flex items-center gap-2">

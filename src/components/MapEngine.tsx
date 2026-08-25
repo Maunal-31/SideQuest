@@ -213,7 +213,7 @@ const MapEngine: React.FC<MapEngineProps> = ({ quests: propQuests }) => {
         type="button"
         onClick={handleCenterOnUser}
         title="Center map on my live GPS location"
-        className="absolute bottom-6 right-6 z-[400] bg-white hover:bg-black hover:text-white text-black p-3.5 rounded-2xl brutal-border brutal-shadow brutal-shadow-hover transition-all flex items-center gap-2 font-black text-xs uppercase cursor-pointer"
+        className="absolute bottom-6 left-6 z-[400] bg-white hover:bg-black hover:text-white text-black p-3.5 rounded-2xl brutal-border brutal-shadow brutal-shadow-hover transition-all flex items-center gap-2 font-black text-xs uppercase cursor-pointer"
       >
         <Crosshair className={`w-5 h-5 ${isLocating ? 'animate-spin text-[#EA580C]' : 'text-[#2563EB]'}`} strokeWidth={3} />
         <span className="hidden sm:inline">Locate Me</span>

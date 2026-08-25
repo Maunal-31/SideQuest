@@ -68,9 +68,13 @@ const Navbar: React.FC = () => {
                 <Sparkles className="w-4 h-4" /> Post Task
               </button>
               
-              <div id="tour-stats" className="flex items-center gap-3 brutal-card px-3 py-1.5 bg-white">
+              <div 
+                id="tour-stats" 
+                onClick={() => navigate('/profile')}
+                className="flex items-center gap-3 brutal-card px-3 py-1.5 bg-white cursor-pointer group hover:bg-black transition-all brutal-shadow-hover"
+              >
                 <div className="hidden md:flex flex-col items-end">
-                  <span className="text-sm font-bold text-black">{displayName}</span>
+                  <span className="text-sm font-bold text-black group-hover:text-white transition-colors">{displayName}</span>
                   <span className="text-xs text-[#EA580C] font-black">{userCoins} Coins</span>
                 </div>
                 <div className="relative">
@@ -78,7 +82,10 @@ const Navbar: React.FC = () => {
                   <div className="absolute -bottom-1 -right-1 bg-[#16A34A] w-4 h-4 rounded-full border border-black z-10"></div>
                 </div>
                 <button
-                  onClick={handleLogout}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleLogout();
+                  }}
                   title="Sign Out"
                   className="p-1.5 bg-red-100 hover:bg-red-500 hover:text-white text-black rounded-lg brutal-border transition-colors ml-1"
                 >
