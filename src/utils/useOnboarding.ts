@@ -16,9 +16,11 @@ export const startFrogTutorial = () => {
         stagePadding: 8,
         stageRadius: 16,
         onDestroyed: () => {
+            document.dispatchEvent(new CustomEvent('close-tour-quest-modal'));
             driverInstance = null;
         },
         onDestroyStarted: () => {
+            document.dispatchEvent(new CustomEvent('close-tour-quest-modal'));
             if (driverInstance) {
                 driverInstance.destroy();
                 driverInstance = null;
@@ -50,6 +52,12 @@ export const startFrogTutorial = () => {
                     description: "When you find a task you like, click 'Accept Quest' to lock it in! Once you finish the job, just paste a Google Drive link as proof to claim your bounty.",
                     side: "right",
                     align: 'start'
+                },
+                onHighlightStarted: () => {
+                    document.dispatchEvent(new CustomEvent('open-tour-quest-modal'));
+                },
+                onDeselected: () => {
+                    document.dispatchEvent(new CustomEvent('close-tour-quest-modal'));
                 }
             },
             {

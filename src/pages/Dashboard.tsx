@@ -25,6 +25,26 @@ const Dashboard: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
+  // Onboarding Tutorial: Listen for request to open/close uppermost quest modal on Step 3
+  useEffect(() => {
+    const handleOpenTourModal = () => {
+      if (quests.length > 0 && quests[0].id) {
+        setActiveMapPin(quests[0].id);
+      }
+    };
+    const handleCloseTourModal = () => {
+      setActiveMapPin(null);
+    };
+
+    document.addEventListener('open-tour-quest-modal', handleOpenTourModal);
+    document.addEventListener('close-tour-quest-modal', handleCloseTourModal);
+
+    return () => {
+      document.removeEventListener('open-tour-quest-modal', handleOpenTourModal);
+      document.removeEventListener('close-tour-quest-modal', handleCloseTourModal);
+    };
+  }, [quests, setActiveMapPin]);
+
   const filteredQuests = quests.filter(q => {
     const matchesSearch = q.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           q.description.toLowerCase().includes(searchQuery.toLowerCase());

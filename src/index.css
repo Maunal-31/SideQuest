@@ -500,6 +500,8 @@ body.driver-active:has(#tour-feed.driver-active-element) div.z-20,
 body.driver-active:has(#tour-accept-btn.driver-active-element) div.z-20,
 body.driver-active:has(#tour-feed.driver-active-element) [class*="z-20"],
 body.driver-active:has(#tour-accept-btn.driver-active-element) [class*="z-20"],
+body.driver-active:has(button#tour-accept-btn.driver-active-element) .fixed.z-50,
+body.driver-active:has(button#tour-accept-btn.driver-active-element) [class*="z-50"],
 body.driver-active:has(#tour-post-btn.driver-active-element) nav,
 body.driver-active:has(#tour-stats.driver-active-element) nav {
   z-index: 100002 !important;
