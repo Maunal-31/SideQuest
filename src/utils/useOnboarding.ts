@@ -13,6 +13,8 @@ export const startFrogTutorial = () => {
         animate: true,
         popoverClass: 'mascot-speech-bubble',
         overlayColor: 'rgba(0, 0, 0, 0.75)',
+        stagePadding: 8,
+        stageRadius: 16,
         onDestroyStarted: () => {
             if (driverInstance && !driverInstance.hasNextStep() || driverInstance.isLastStep()) {
                 driverInstance.destroy();
@@ -42,7 +44,7 @@ export const startFrogTutorial = () => {
                 element: '#tour-accept-btn',
                 popover: {
                     title: '<img src="/bot-point-removebg-preview.png" class="mascot-avatar" /> Quest-Bot',
-                    description: "When you find a task you like, click 'Accept Quest' to lock it in! Once you finish the job, just drag and drop a photo or PDF as proof to claim your bounty.",
+                    description: "When you find a task you like, click 'Accept Quest' to lock it in! Once you finish the job, just paste a Google Drive link as proof to claim your bounty.",
                     side: "bottom",
                     align: 'center'
                 }

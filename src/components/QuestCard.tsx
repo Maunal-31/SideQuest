@@ -45,7 +45,7 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, onClick }) => {
         {quest.title}
       </h3>
       
-      <p className="text-gray-600 text-sm font-medium line-clamp-2 mb-4 bg-gray-50 p-2 rounded brutal-border">
+      <p className="text-black text-sm font-bold line-clamp-2 mb-4 bg-gray-50 p-2.5 rounded-lg brutal-border">
         {quest.description}
       </p>
       

@@ -128,7 +128,7 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
             <h3 className="text-lg uppercase tracking-wider text-black font-black mb-3 border-b-4 border-black pb-1 inline-block">
               Quest Details
             </h3>
-            <p className="text-black font-medium leading-relaxed text-lg bg-gray-50 p-4 rounded-xl brutal-border">
+            <p className="text-black font-bold leading-relaxed text-lg bg-gray-50 p-4 rounded-xl brutal-border">
               {quest.description}
             </p>
           </div>
@@ -174,7 +174,7 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
                       value={proofLink}
                       onChange={(e) => setProofLink(e.target.value)}
                       placeholder="https://drive.google.com/file/d/... or photos link"
-                      className="w-full bg-white brutal-border brutal-shadow-sm rounded-xl py-3.5 pl-11 pr-4 font-bold text-black focus:outline-none focus:bg-[#EAB308]/20 transition-all text-sm"
+                      className="w-full bg-white brutal-border brutal-shadow-sm rounded-xl py-3.5 pl-11 pr-4 font-black text-black placeholder:text-gray-600 focus:outline-none focus:bg-[#EAB308]/20 transition-all text-sm"
                     />
                     <LinkIcon className="w-5 h-5 text-gray-500 absolute left-3.5 top-3.5 pointer-events-none" strokeWidth={2.5} />
                   </div>

@@ -26,6 +26,16 @@
 
   }
 
+  input, textarea, select {
+    color: #000000 !important;
+    font-weight: 700 !important;
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: #4B5563 !important;
+    opacity: 1 !important;
+  }
+
 }
 
 
@@ -504,73 +514,67 @@ body.driver-active {
 
    ----------------------------------------------------------- */
 
-/* -- 10. Active Element Highlight Glow (UNIFORM, ALL STEPS) --
-
-   Root cause of dim steps: partial-opacity rgba() values interact
-
-   differently with each element's stacking context — a semi-transparent
-
-   amber glow is bright on the dark map but nearly invisible on a
-
-   lighter card background. Fix: use fully opaque white (opacity=1) so
-
-   the glow is always maximally visible regardless of what is behind it.
-
-   ----------------------------------------------------------- */
-
-.driver-active-element {
-
-  /* Layer 1: solid 5px white ring — always crisp and visible */
-
-  /* Layer 2: broad soft bloom — adds depth */
-
-  box-shadow:
-
-    0 0 0 5px rgba(255, 255, 255, 1),
-
-    0 0 25px 8px rgba(255, 255, 255, 0.8) !important;
-
-  z-index: 100005 !important;
-
-  position: relative !important;
-  
-  isolation: isolate !important;
-
-  /* Breathing pulse so it feels alive */
-
-  animation: elementGlow 1.8s ease-in-out infinite !important;
-
-  /* Inherit border-radius so ring matches rounded elements */
-
-  border-radius: inherit;
-
+/* -- 10. Active Tour Step Highlight (100% Bright Spotlight for All Sections) -- */
+.driver-overlay {
+  background: rgba(0, 0, 0, 0.75) !important;
+  opacity: 1 !important;
 }
 
+/* Force solid bright background & elevation so NO dark overlay bleeds through any tour section */
+.driver-active-element {
+  z-index: 100005 !important;
+  position: relative !important;
+  isolation: isolate !important;
+  opacity: 1 !important;
+  background-color: #ffffff !important;
+  filter: none !important;
+  box-shadow:
+    0 0 0 5px #EAB308,
+    0 0 35px 12px rgba(234, 179, 8, 0.8),
+    0 20px 40px rgba(0, 0, 0, 0.5) !important;
+  border-radius: 16px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
 
+/* Ensure all children inside targeted tour sections stay 100% bright, bold & fully visible */
+.driver-active-element,
+.driver-active-element * {
+  opacity: 1 !important;
+}
+
+/* Explicit bright backgrounds for each specific tour section */
+#tour-map.driver-active-element {
+  background-color: #F3F1EB !important;
+}
+
+#tour-feed.driver-active-element {
+  background-color: #F3F1EB !important;
+  border-radius: 16px !important;
+}
+
+#tour-accept-btn.driver-active-element {
+  background-color: #C084FC !important;
+}
+
+#tour-post-btn.driver-active-element {
+  background-color: #C084FC !important;
+}
+
+#tour-stats.driver-active-element {
+  background-color: #ffffff !important;
+}
 
 @keyframes elementGlow {
-
-  0%,
-  100% {
-
+  0%, 100% {
     box-shadow:
-
-      0 0 0 5px rgba(255, 255, 255, 1),
-
-      0 0 25px 8px rgba(255, 255, 255, 0.8);
-
+      0 0 0 5px #EAB308,
+      0 0 25px 6px rgba(234, 179, 8, 0.6);
   }
-
   50% {
-
     box-shadow:
-
-      0 0 0 5px rgba(255, 255, 255, 1),
-
-      0 0 40px 14px rgba(255, 255, 255, 0.95);
-
+      0 0 0 5px #EAB308,
+      0 0 40px 14px rgba(234, 179, 8, 0.9);
   }
-
 }
 
 

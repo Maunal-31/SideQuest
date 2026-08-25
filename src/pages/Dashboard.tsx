@@ -131,7 +131,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Right Side Map */}
-      <div className="flex-1 relative border-l-4 border-black md:border-l-0">
+      <div id="tour-map" className="flex-1 relative border-l-4 border-black md:border-l-0">
         <MapEngine quests={quests as any} />
         
         {/* Floating Quick Filters overlay */}
