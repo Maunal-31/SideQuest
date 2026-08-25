@@ -322,8 +322,8 @@ body.driver-active {
 .driver-popover-title img.mascot-avatar {
   position: absolute !important;
   top: 50% !important;
-  left: -115px !important;
-  right: auto !important;
+  right: -115px !important;
+  left: auto !important;
   height: 125px !important;
   width: auto !important;
   background: transparent !important;
@@ -335,6 +335,12 @@ body.driver-active {
   z-index: 10 !important;
   will-change: transform;
   animation: mascotFloat 2.5s ease-in-out infinite !important;
+}
+
+/* Map Section Only: Place mascot outside the LEFT boundary of the text box so it never overlaps the map */
+body.driver-active:has(#tour-map.driver-active-element) .driver-popover-title img.mascot-avatar {
+  left: -115px !important;
+  right: auto !important;
 }
 
 /* ── 5. Desktop float animation ────────────────────────────── */
@@ -488,12 +494,15 @@ body.driver-active {
   opacity: 1 !important;
 }
 
-/* Ensure navbar, header, and fixed/absolute containers do not trap active tour elements behind dark overlay */
-body.driver-active nav,
-body.driver-active header,
-body.driver-active .fixed,
-body.driver-active .absolute {
-  z-index: 100001 !important;
+
+/* Elevate parent stacking contexts ONLY when they contain the active tour step element */
+body.driver-active:has(#tour-feed.driver-active-element) div.z-20,
+body.driver-active:has(#tour-accept-btn.driver-active-element) div.z-20,
+body.driver-active:has(#tour-feed.driver-active-element) [class*="z-20"],
+body.driver-active:has(#tour-accept-btn.driver-active-element) [class*="z-20"],
+body.driver-active:has(#tour-post-btn.driver-active-element) nav,
+body.driver-active:has(#tour-stats.driver-active-element) nav {
+  z-index: 100002 !important;
 }
 
 /* Force solid bright background & elevation so NO dark overlay bleeds through any tour section */
