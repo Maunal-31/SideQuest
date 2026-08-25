@@ -20,6 +20,8 @@ export interface Quest {
   posterLevel: number;
   hunterId: string | null;
   hunterName?: string;
+  proofUrl?: string;
+  proofFileName?: string;
   createdAt?: any;
 
   // Convenience nested properties for UI components compatibility
@@ -107,6 +109,8 @@ export const subscribeToQuests = (callback: (quests: Quest[]) => void) => {
         posterLevel,
         hunterId: data.hunterId ?? null,
         hunterName: data.hunterName,
+        proofUrl: data.proofUrl,
+        proofFileName: data.proofFileName,
         createdAt: data.createdAt,
 
         // Backwards compatibility mappings for UI components
@@ -150,7 +154,36 @@ export const acceptQuest = async (questId: string, hunterIdOrName: string, hunte
 };
 
 /**
- * 4. Helper to update quest status in Firestore
+ * 4. Convert local File to Data URL string (No paid Firebase Storage needed)
+ */
+export const convertFileToDataUrl = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+    reader.readAsDataURL(file);
+  });
+};
+
+/**
+ * 5. Submit proof URL/Link directly to Firestore quest document
+ */
+export const submitQuestProofInFirestore = async (
+  questId: string,
+  proofUrl: string,
+  proofFileName: string
+) => {
+  const questDoc = doc(db, "quests", questId);
+  return await updateDoc(questDoc, {
+    status: "Submitted",
+    proofUrl,
+    proofFileName,
+    submittedAt: serverTimestamp()
+  });
+};
+
+/**
+ * 6. Helper to update quest status in Firestore
  */
 export const updateQuestStatusInFirestore = async (questId: string, status: Quest["status"]) => {
   const questDoc = doc(db, "quests", questId);

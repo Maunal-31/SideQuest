@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import type { Quest } from '../types';
 import { getCategoryColor, getUrgencyColor } from '../utils/colors';
-import { X, Clock, Navigation, Award, Shield, CheckCircle2, UploadCloud } from 'lucide-react';
+import { X, Clock, Navigation, Award, Shield, CheckCircle2, Link as LinkIcon, ExternalLink, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { acceptQuest, updateQuestStatusInFirestore } from '../services/questService';
+import { acceptQuest, submitQuestProofInFirestore } from '../services/questService';
 import { toast } from 'react-toastify';
 
 interface QuestModalProps {
@@ -13,8 +13,9 @@ interface QuestModalProps {
 
 const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
   const { currentUser: authUser, userProfile } = useAuth();
+
   const [localStatus, setLocalStatus] = useState<Quest['status']>(quest.status);
-  const [proofUploaded, setProofUploaded] = useState(false);
+  const [proofLink, setProofLink] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const locName = quest.location?.name ?? quest.locationZone ?? quest.locationName ?? 'Campus';
@@ -42,31 +43,24 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setProofUploaded(true);
-    toast.info('Proof attached 📎');
-  };
-
   const handleSubmit = async () => {
     if (!quest.id) return;
+
+    if (!proofLink.trim()) {
+      toast.error('Please paste a valid Google Drive or Cloud link.');
+      return;
+    }
+
     setIsProcessing(true);
+
     try {
-      await updateQuestStatusInFirestore(quest.id, 'Submitted');
+      // Store proofUrl directly in regular Firestore database quests collection (No Firebase Storage)
+      await submitQuestProofInFirestore(quest.id, proofLink.trim(), 'Google Drive / Cloud Link');
+
       setLocalStatus('Submitted');
-      toast.success('Sent for review! 🕵️');
-      
-      setTimeout(async () => {
-        try {
-          await updateQuestStatusInFirestore(quest.id, 'Verified & Released');
-          setLocalStatus('Verified & Released');
-          toast.success(`BOUNTY SECURED: ${rewardAmount} ${rewardType}! 💸`);
-        } catch (err) {
-          console.error('Failed to verify quest in Firestore:', err);
-        }
-      }, 2000);
+      toast.success('Proof link saved to Firestore for verification! 🕵️');
     } catch (error) {
-      console.error('Failed to submit proof in Firestore:', error);
+      console.error('Failed to save proof link in Firestore:', error);
       toast.error('Failed to submit proof. Please try again.');
     } finally {
       setIsProcessing(false);
@@ -96,7 +90,7 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
           
           <button 
             onClick={onClose}
-            className="relative z-10 p-2 bg-white brutal-border brutal-shadow-sm hover:translate-y-1 transition-transform"
+            className="relative z-10 p-2 bg-white brutal-border brutal-shadow-sm hover:translate-y-1 transition-transform cursor-pointer"
           >
             <X className="w-6 h-6 text-black" strokeWidth={3} />
           </button>
@@ -141,7 +135,7 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
 
           <div className="mb-8 flex items-center justify-between bg-white border-2 border-dashed border-gray-400 p-4 rounded-xl">
             <div className="flex items-center gap-4">
-              <img src={posterAvatar} alt="poster" className="w-12 h-12 rounded-full border-2 border-black bg-[#C084FC] brutal-shadow-sm" />
+              <img src={posterAvatar} alt="poster" className="w-12 h-12 rounded-full border-2 border-black bg-[#C084FC] brutal-shadow-sm object-cover" />
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-gray-500 font-black">Posted By</p>
                 <div className="flex items-center gap-2">
@@ -161,7 +155,7 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
                 id="tour-accept-btn"
                 onClick={handleAccept}
                 disabled={isProcessing}
-                className="w-full py-5 bg-[#C084FC] hover:bg-black hover:text-white text-black font-black rounded-xl transition-all brutal-border brutal-shadow brutal-shadow-hover text-2xl uppercase tracking-wider flex items-center justify-center gap-3 disabled:opacity-50"
+                className="w-full py-5 bg-[#C084FC] hover:bg-black hover:text-white text-black font-black rounded-xl transition-all brutal-border brutal-shadow brutal-shadow-hover text-2xl uppercase tracking-wider flex items-center justify-center gap-3 disabled:opacity-50 cursor-pointer"
               >
                 {isProcessing ? 'Accepting...' : 'Accept Quest'} <Shield className="w-6 h-6" strokeWidth={3} />
               </button>
@@ -169,41 +163,58 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
 
             {localStatus === 'In Progress' && (
               <div className="space-y-4">
-                <div 
-                  className={`w-full border-4 border-dashed rounded-xl p-8 flex flex-col items-center justify-center transition-colors cursor-pointer font-bold
-                    ${proofUploaded ? 'border-black bg-[#16A34A] text-white' : 'border-black hover:bg-gray-100 text-black'}`}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={handleDrop}
-                  onClick={() => setProofUploaded(true)}
-                >
-                  {proofUploaded ? (
-                    <>
-                      <CheckCircle2 className="w-12 h-12 mb-3" strokeWidth={3} />
-                      <p className="text-xl">Proof Attached!</p>
-                    </>
-                  ) : (
-                    <>
-                      <UploadCloud className="w-12 h-12 mb-3" strokeWidth={3} />
-                      <p className="text-lg mb-1 uppercase font-black">Drop Proof Here</p>
-                      <p className="text-sm">Click to upload photo or pdf</p>
-                    </>
-                  )}
+                <div className="space-y-2 bg-gray-50 p-4 rounded-xl brutal-border">
+                  <label className="block text-xs font-black uppercase text-black">
+                    Proof Cloud / Google Drive Link
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="url"
+                      required
+                      value={proofLink}
+                      onChange={(e) => setProofLink(e.target.value)}
+                      placeholder="https://drive.google.com/file/d/... or photos link"
+                      className="w-full bg-white brutal-border brutal-shadow-sm rounded-xl py-3.5 pl-11 pr-4 font-bold text-black focus:outline-none focus:bg-[#EAB308]/20 transition-all text-sm"
+                    />
+                    <LinkIcon className="w-5 h-5 text-gray-500 absolute left-3.5 top-3.5 pointer-events-none" strokeWidth={2.5} />
+                  </div>
+                  <p className="text-[11px] font-bold text-gray-500">
+                    Paste a public Google Drive, Dropbox, or Cloud link as proof. Saved in our regular database.
+                  </p>
                 </div>
+
                 <button 
                   onClick={handleSubmit}
-                  disabled={!proofUploaded || isProcessing}
-                  className={`w-full py-5 font-black rounded-xl transition-all text-xl uppercase brutal-border
-                    ${proofUploaded && !isProcessing ? 'bg-black text-white brutal-shadow brutal-shadow-hover' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+                  disabled={isProcessing || !proofLink.trim()}
+                  className={`w-full py-5 font-black rounded-xl transition-all text-xl uppercase brutal-border flex items-center justify-center gap-2
+                    ${!isProcessing && proofLink.trim() ? 'bg-black text-white brutal-shadow brutal-shadow-hover cursor-pointer' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
                 >
-                  {isProcessing ? 'Submitting...' : 'Submit For Verification'}
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                      Saving to Database...
+                    </>
+                  ) : (
+                    'Submit For Verification'
+                  )}
                 </button>
               </div>
             )}
 
             {localStatus === 'Submitted' && (
-              <div className="w-full py-8 bg-[#EAB308] border-2 border-black brutal-shadow rounded-xl flex flex-col items-center justify-center">
+              <div className="w-full py-8 bg-[#EAB308] border-2 border-black brutal-shadow rounded-xl flex flex-col items-center justify-center p-6 text-center">
                 <div className="w-10 h-10 border-4 border-black border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-black font-black text-xl uppercase">Awaiting Escrow Verification...</p>
+                <p className="text-black font-black text-xl uppercase mb-1">Awaiting Escrow Verification...</p>
+                {quest.proofUrl && (
+                  <a 
+                    href={quest.proofUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-xs font-black uppercase bg-white hover:bg-black hover:text-white text-black px-3 py-1.5 rounded-lg border-2 border-black flex items-center gap-1.5 mt-3 transition-colors"
+                  >
+                    <ExternalLink className="w-4 h-4" strokeWidth={2.5} /> View Submitted Cloud Link
+                  </a>
+                )}
               </div>
             )}
 
