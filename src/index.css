@@ -319,12 +319,9 @@ body.driver-active {
   z-index: 5 !important;
 }
 
+/* ── Mascot Avatar (Base & Responsive Rules) ───────────────── */
 .driver-popover-title img.mascot-avatar {
   position: absolute !important;
-  top: 50% !important;
-  right: -115px !important;
-  left: auto !important;
-  height: 125px !important;
   width: auto !important;
   background: transparent !important;
   border: none !important;
@@ -334,146 +331,90 @@ body.driver-active {
   pointer-events: none !important;
   z-index: 10 !important;
   will-change: transform;
-  animation: mascotFloat 2.5s ease-in-out infinite !important;
 }
 
-/* Map Section Only: Place mascot outside the LEFT boundary of the text box so it never overlaps the map */
-body.driver-active:has(#tour-map.driver-active-element) .driver-popover-title img.mascot-avatar {
-  left: -115px !important;
-  right: auto !important;
-}
-
-/* ── 5. Desktop float animation ────────────────────────────── */
-@keyframes mascotFloat {
-  0%,
-  100% {
-    transform: translateY(-50%);
+/* 1. Large Laptops & Desktops (> 1280px) */
+@media (min-width: 1281px) {
+  .driver-popover-title img.mascot-avatar {
+    top: 50% !important;
+    right: -110px !important;
+    left: auto !important;
+    height: 120px !important;
+    animation: mascotFloatDesktop 2.5s ease-in-out infinite !important;
   }
-  50% {
-    transform: translateY(calc(-50% - 8px));
+
+  /* Map Section Only: Place mascot outside the LEFT boundary of the text box so it never overlaps the map */
+  body.driver-active:has(#tour-map.driver-active-element) .driver-popover-title img.mascot-avatar {
+    left: -110px !important;
+    right: auto !important;
   }
-}
 
-
-
-/* ── 6. Speech bubble tail (desktop only) ──────────────────── */
-
-/*
-
-  pointer-events: none is critical here. Without it, the pseudo-element
-
-  creates an invisible hit area that blocks clicks on the close button.
-
-*/
-
-.driver-popover::before {
-
-  content: none;
-
-  pointer-events: none !important;
-
-}
-
-
-
-@media (min-width: 769px) {
+  @keyframes mascotFloatDesktop {
+    0%, 100% { transform: translateY(-50%); }
+    50% { transform: translateY(calc(-50% - 8px)); }
+  }
 
   .driver-popover::before {
-
     content: '' !important;
-
     position: absolute !important;
-
-    top: 28px !important;
-
-    right: -13px !important;
-
-    border-width: 13px 0 13px 13px !important;
-
+    top: 24px !important;
+    right: -12px !important;
+    border-width: 10px 0 10px 12px !important;
     border-style: solid !important;
-
     border-color: transparent transparent transparent #ffffff !important;
-
     pointer-events: none !important;
-
     z-index: 1 !important;
-
   }
-
 }
 
-
-
-/* ── 7. Close button: always on top, always clickable ─────── */
-
-.driver-popover-close-btn {
-
-  position: relative !important;
-
-  z-index: 99999999 !important;
-
-  pointer-events: auto !important;
-
-  cursor: pointer !important;
-
-}
-
-
-
-/* ── 8. Mobile: mascot hops above the popover ────────────── */
-
-@media (max-width: 768px) {
-
+/* 2. Medium Laptops & Tablets (769px to 1280px) */
+@media (min-width: 769px) and (max-width: 1280px) {
   .driver-popover {
-
-    /* Vertical room for the mascot sitting above the box */
-
-    margin-top: 90px !important;
-
+    margin-top: 50px !important;
+    max-width: min(340px, calc(100vw - 32px)) !important;
   }
-
-
 
   .driver-popover-title img.mascot-avatar {
-    top: -85px !important;
-    left: 20px !important;
+    top: -55px !important;
+    left: 16px !important;
     right: auto !important;
-    height: 90px !important;
+    height: 88px !important;
+    animation: mascotFloatMedium 2.5s ease-in-out infinite !important;
+  }
+
+  @keyframes mascotFloatMedium {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+  }
+
+  .driver-popover::before {
+    content: none !important;
+  }
+}
+
+/* 3. Mobile Devices (<= 768px) */
+@media (max-width: 768px) {
+  .driver-popover {
+    margin-top: 55px !important;
+    max-width: calc(100vw - 32px) !important;
+  }
+
+  .driver-popover-title img.mascot-avatar {
+    top: -50px !important;
+    left: 12px !important;
+    right: auto !important;
+    height: 75px !important;
     animation: mascotFloatMobile 2.5s ease-in-out infinite !important;
   }
 
-
-
-  /* Hide the right-pointing tail on mobile */
+  @keyframes mascotFloatMobile {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+  }
 
   .driver-popover::before {
-
     content: none !important;
-
   }
-
-}
-
-
-
-/* ── 9. Mobile float animation ────────────────────────────── */
-
-@keyframes mascotFloatMobile {
-
-  0%,
-
-  100% {
-
-    transform: translateY(0px);
-
-  }
-
-  50% {
-
-    transform: translateY(-8px);
-
-  }
-
 }
 
 
