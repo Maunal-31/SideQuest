@@ -158,13 +158,13 @@ const Dashboard: React.FC = () => {
         </div>
         
         {/* Floating Quick Filters overlay */}
-        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10 hidden md:flex items-center gap-3 bg-white p-3 rounded-2xl brutal-border brutal-shadow">
-          <span className="font-black uppercase text-sm mr-2">Zones:</span>
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10 hidden md:flex items-center gap-3 bg-white p-3 rounded-2xl brutal-border brutal-shadow max-w-[90%] overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <span className="font-black uppercase text-sm mr-2 shrink-0">Zones:</span>
           {Object.entries(CAMPUS_ZONES).map(([key, zone]) => (
             <button
               key={key}
               onClick={() => handleZoneClick(zone.lat, zone.lng)}
-              className="px-3 py-1.5 bg-[#F3F1EB] hover:bg-[#EAB308] text-black text-xs font-bold uppercase rounded-md brutal-border brutal-shadow-sm transition-colors"
+              className="shrink-0 px-3 py-1.5 bg-[#F3F1EB] hover:bg-[#EAB308] text-black text-xs font-bold uppercase rounded-md brutal-border brutal-shadow-sm transition-colors whitespace-nowrap"
             >
               {key}
             </button>

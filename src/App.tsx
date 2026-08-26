@@ -94,7 +94,7 @@ function AppContent() {
           {/* Tooltip Arrow */}
           <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-2 bg-black rotate-45"></div>
         </div>
-        <img src="/bot-wave.png" alt="Replay Tour" className="w-12 h-12 object-contain" />
+        <img src="/bot-wave.png" alt="Replay Tour" className="w-14 h-14 object-cover rounded-full" />
       </button>
 
       <ToastContainer

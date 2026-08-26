@@ -4,6 +4,7 @@ import { useSideQuest } from '../context/SideQuestContext';
 import QuestCard from '../components/QuestCard';
 import QuestModal from '../components/QuestModal';
 import Settings from './Settings';
+import AnimatedEmptyState from '../components/AnimatedEmptyState';
 import { Settings as SettingsIcon, Shield, Award, Zap, Coins, Building, MapPin } from 'lucide-react';
 import { Quest } from '../types';
 
@@ -214,11 +215,10 @@ const Profile: React.FC = () => {
                   />
                 ))
               ) : (
-                <div className="col-span-full text-center py-20 text-black bg-white rounded-2xl brutal-border brutal-shadow p-6">
-                  <Shield className="w-16 h-16 mx-auto mb-4 text-gray-300" strokeWidth={2} />
-                  <p className="text-2xl font-black uppercase mb-2">No Active Quests</p>
-                  <p className="font-bold text-gray-500">Check the radar to find bounties to hunt!</p>
-                </div>
+                <AnimatedEmptyState 
+                  title="No Active Quests" 
+                  subtitle="Check the radar to find bounties to hunt!" 
+                />
               )
             )}
             
@@ -232,10 +232,10 @@ const Profile: React.FC = () => {
                   />
                 ))
               ) : (
-                <div className="col-span-full text-center py-20 text-black bg-white rounded-2xl brutal-border brutal-shadow p-6">
-                  <p className="text-2xl font-black uppercase mb-2">No Posted Quests</p>
-                  <p className="font-bold text-gray-500">Post a new bounty using the + button or navbar!</p>
-                </div>
+                <AnimatedEmptyState 
+                  title="No Posted Quests" 
+                  subtitle="Post a new bounty using the + button or navbar!" 
+                />
               )
             )}
 
@@ -249,10 +249,10 @@ const Profile: React.FC = () => {
                   />
                 ))
               ) : (
-                <div className="col-span-full text-center py-20 text-black bg-white rounded-2xl brutal-border brutal-shadow p-6">
-                  <p className="text-2xl font-black uppercase mb-2">History Empty</p>
-                  <p className="font-bold text-gray-500">Completed bounties will show up here once verified.</p>
-                </div>
+                <AnimatedEmptyState 
+                  title="History Empty!" 
+                  subtitle="Completed bounties will show up here once verified." 
+                />
               )
             )}
           </div>
