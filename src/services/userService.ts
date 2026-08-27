@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, collection, query, orderBy, onSnapshot, serverTimestamp, increment } from "firebase/firestore";
 import { User } from "firebase/auth";
 import { db } from "../firebase";
 
@@ -87,7 +87,7 @@ export const getUserProfile = async (uid: string): Promise<UserProfile | null> =
 };
 
 /**
- * Real-time listener for a user profile document in Firestore.
+ * Real-time listener for a single user profile document in Firestore.
  */
 export const subscribeToUserProfile = (
   uid: string,
@@ -100,5 +100,57 @@ export const subscribeToUserProfile = (
     } else {
       callback(null);
     }
+  });
+};
+
+/**
+ * Real-time listener for Leaderboard (all users ordered by XP descending).
+ */
+export const subscribeToLeaderboard = (callback: (users: UserProfile[]) => void) => {
+  const usersRef = collection(db, "users");
+  const q = query(usersRef, orderBy("xp", "desc"));
+
+  return onSnapshot(q, (snapshot) => {
+    const leaderboardUsers: UserProfile[] = snapshot.docs.map((docSnap) => ({
+      uid: docSnap.id,
+      ...(docSnap.data() as Omit<UserProfile, "uid">)
+    }));
+    callback(leaderboardUsers);
+  });
+};
+
+/**
+ * Awards bounty XP & Coins to the Hunter's Firestore document upon verification.
+ */
+export const awardBountyToHunter = async (
+  hunterUid: string,
+  rewardAmount: number,
+  rewardType: string
+) => {
+  if (!hunterUid) return;
+  const hunterRef = doc(db, "users", hunterUid);
+  const hunterSnap = await getDoc(hunterRef);
+
+  if (!hunterSnap.exists()) return;
+
+  const currentData = hunterSnap.data();
+  const currentXp = currentData.xp || 0;
+  const addedXp = rewardType === "XP" ? rewardAmount : 250; // Award XP bonus for every completed bounty
+  const addedCoins = rewardType === "Coins" || rewardType === "Rupees" ? rewardAmount : 100;
+  const newXp = currentXp + addedXp;
+  const newLevel = Math.max(1, Math.floor(newXp / 500) + 1);
+
+  // Guild Ranks
+  let newRank = "Bronze I";
+  if (newLevel >= 15) newRank = "Gold I";
+  else if (newLevel >= 10) newRank = "Silver I";
+  else if (newLevel >= 5) newRank = "Bronze III";
+
+  await updateDoc(hunterRef, {
+    xp: increment(addedXp),
+    coins: increment(addedCoins),
+    level: newLevel,
+    guildRank: newRank,
+    completedQuestsCount: increment(1)
   });
 };

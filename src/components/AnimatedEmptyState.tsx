@@ -8,7 +8,7 @@ interface AnimatedEmptyStateProps {
 const AnimatedEmptyState: React.FC<AnimatedEmptyStateProps> = ({ title, subtitle }) => {
   // Memoize keys so they don't re-render and lose animation state
   const keyboardKeys = useMemo(() => {
-    const keys = [];
+    const keys: React.ReactNode[] = [];
     const keyWidth = 28;
     const keyHeight = 20;
     const gap = 4;
@@ -118,8 +118,8 @@ const AnimatedEmptyState: React.FC<AnimatedEmptyStateProps> = ({ title, subtitle
         `}
       </style>
 
-      <div className="w-full max-w-[500px] mb-8 relative rounded-2xl overflow-hidden">
-        <svg viewBox="0 0 800 600" className="w-full h-auto block" xmlns="http://www.w3.org/2000/svg">
+      <div className="w-full max-w-[280px] mx-auto mb-4 relative rounded-2xl overflow-hidden flex items-center justify-center">
+        <svg viewBox="0 0 800 600" className="w-full h-auto block mx-auto" xmlns="http://www.w3.org/2000/svg">
           {/* Background removed to blend into card */}
 
           {/* Static Shadows */}

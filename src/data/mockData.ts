@@ -1,22 +1,23 @@
 import { Quest, UserProfile, Location } from '../types';
 
-export const CAMPUS_BOUNDS: [[number, number], [number, number]] = [[23.0305, 72.5420], [23.0375, 72.5510]];
-export const CAMPUS_CENTER: [number, number] = [23.0338, 72.5464];
+export const CAMPUS_BOUNDS: [[number, number], [number, number]] = [[23.0200, 72.5200], [23.0500, 72.5700]];
+export const CAMPUS_CENTER: [number, number] = [23.0338, 72.5445];
 
 export const CAMPUS_ZONES: Record<string, Location> = {
-  'Central Library': { lat: 23.0335, lng: 72.5455, name: 'Central Library' },
-  'Hostel Blocks': { lat: 23.0320, lng: 72.5480, name: 'Hostel Blocks' },
-  'Sports Complex': { lat: 23.0330, lng: 72.5490, name: 'Sports Complex' },
-  'Student Section': { lat: 23.0340, lng: 72.5460, name: 'Student Section' },
-  'Student Support System - NTF': { lat: 23.0342, lng: 72.5462, name: 'Student Support System - NTF' },
-  'Industry Sponsored Labs': { lat: 23.0348, lng: 72.5470, name: 'Industry Sponsored Labs' },
-  'Super Computing Facility': { lat: 23.0350, lng: 72.5475, name: 'Super Computing Facility' },
-  'Campus Canteen': { lat: 23.0355, lng: 72.5450, name: 'Campus Canteen' },
-  'Computer Engineering Dept': { lat: 23.0345, lng: 72.5468, name: 'Computer Engineering Dept' },
-  'Information Technology Dept': { lat: 23.0346, lng: 72.5469, name: 'Information Technology Dept' },
-  'Mechanical & Civil Block': { lat: 23.0330, lng: 72.5460, name: 'Mechanical & Civil Block' },
-  'Electronics & EC Dept': { lat: 23.0340, lng: 72.5472, name: 'Electronics & EC Dept' },
-  'Campus Facilities Main': { lat: 23.0338, lng: 72.5464, name: 'Campus Facilities Main' },
+  'Central Library': { lat: 23.0335, lng: 72.5445, name: 'Central Library' },
+  'Hostel Blocks': { lat: 23.0320, lng: 72.5460, name: 'Hostel Blocks' },
+  'Sports Complex': { lat: 23.0330, lng: 72.5470, name: 'Sports Complex' },
+  'Student Section': { lat: 23.0340, lng: 72.5450, name: 'Student Section' },
+  'Student Support System - NTF': { lat: 23.0342, lng: 72.5452, name: 'Student Support System - NTF' },
+  'Industry Sponsored Labs': { lat: 23.0348, lng: 72.5455, name: 'Industry Sponsored Labs' },
+  'Super Computing Facility': { lat: 23.0350, lng: 72.5460, name: 'Super Computing Facility' },
+  'Campus Canteen': { lat: 23.0355, lng: 72.5440, name: 'Campus Canteen' },
+  'Computer Engineering Dept': { lat: 23.0345, lng: 72.5450, name: 'Computer Engineering Dept' },
+  'Information Technology Dept': { lat: 23.0337, lng: 72.5458, name: 'IT Dept (Annexe Building)' },
+  'Annexe Building (IT Dept)': { lat: 23.0337, lng: 72.5458, name: 'Annexe Building (IT Dept)' },
+  'Mechanical & Civil Block': { lat: 23.0330, lng: 72.5440, name: 'Mechanical & Civil Block' },
+  'Electronics & EC Dept': { lat: 23.0340, lng: 72.5458, name: 'Electronics & EC Dept' },
+  'Campus Facilities Main': { lat: 23.0338, lng: 72.5445, name: 'Campus Facilities Main' },
 };
 
 export const MOCK_QUESTS: Quest[] = [

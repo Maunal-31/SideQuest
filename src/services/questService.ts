@@ -46,13 +46,48 @@ export interface Quest {
 }
 
 /**
- * 1. Create a new Quest document in Firestore "quests" collection
+ * Strict validation for Quest Data input
+ */
+export const validateQuestInput = (questData: Partial<Quest>) => {
+  if (!questData.title || questData.title.trim().length < 5) {
+    throw new Error("Quest title must be at least 5 informative characters long.");
+  }
+  if (!questData.description || questData.description.trim().length < 10) {
+    throw new Error("Quest description must be at least 10 characters explaining what you need.");
+  }
+  if (!questData.rewardAmount || isNaN(Number(questData.rewardAmount)) || Number(questData.rewardAmount) <= 0) {
+    throw new Error("Bounty reward amount must be a positive number greater than 0.");
+  }
+  if (!questData.locationName || questData.locationName.trim().length === 0) {
+    throw new Error("Please select a valid LDCE campus location zone.");
+  }
+};
+
+/**
+ * Strict validation for Proof URL Submission
+ */
+export const validateProofUrl = (url: string) => {
+  if (!url || !url.trim()) {
+    throw new Error("Proof link cannot be empty.");
+  }
+  const cleanUrl = url.trim();
+  const isValidUrl = cleanUrl.startsWith("http://") || cleanUrl.startsWith("https://");
+  if (!isValidUrl || cleanUrl.length < 10) {
+    throw new Error("Please provide a valid public cloud link (starting with http:// or https://).");
+  }
+};
+
+/**
+ * 1. Create a new Quest document in Firestore "quests" collection with strict validation
  */
 export const createQuest = async (questData: Omit<Quest, "id" | "createdAt">) => {
+  // Enforce strict backend validation
+  validateQuestInput(questData);
+
   const questsRef = collection(db, "quests");
   return await addDoc(questsRef, {
-    title: questData.title,
-    description: questData.description,
+    title: questData.title.trim(),
+    description: questData.description.trim(),
     category: questData.category,
     urgency: questData.urgency,
     status: questData.status || "Open",
@@ -142,6 +177,7 @@ export const subscribeToQuests = (callback: (quests: Quest[]) => void) => {
  * 3. Accept a quest document in Firestore
  */
 export const acceptQuest = async (questId: string, hunterIdOrName: string, hunterName?: string) => {
+  if (!questId) throw new Error("Quest ID is required to accept quest.");
   const questDoc = doc(db, "quests", questId);
   const actualHunterId = hunterName ? hunterIdOrName : null;
   const actualHunterName = hunterName || hunterIdOrName;
@@ -166,17 +202,22 @@ export const convertFileToDataUrl = (file: File): Promise<string> => {
 };
 
 /**
- * 5. Submit proof URL/Link directly to Firestore quest document
+ * 5. Submit proof URL/Link directly to Firestore quest document with strict URL validation
  */
 export const submitQuestProofInFirestore = async (
   questId: string,
   proofUrl: string,
   proofFileName: string
 ) => {
+  if (!questId) throw new Error("Quest ID is required.");
+  
+  // Enforce strict URL validation
+  validateProofUrl(proofUrl);
+
   const questDoc = doc(db, "quests", questId);
   return await updateDoc(questDoc, {
     status: "Submitted",
-    proofUrl,
+    proofUrl: proofUrl.trim(),
     proofFileName,
     submittedAt: serverTimestamp()
   });
@@ -186,6 +227,7 @@ export const submitQuestProofInFirestore = async (
  * 6. Helper to update quest status in Firestore
  */
 export const updateQuestStatusInFirestore = async (questId: string, status: Quest["status"]) => {
+  if (!questId) throw new Error("Quest ID is required.");
   const questDoc = doc(db, "quests", questId);
   return await updateDoc(questDoc, { status });
 };

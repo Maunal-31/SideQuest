@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import type { Quest } from '../types';
 import { getCategoryColor, getUrgencyColor } from '../utils/colors';
-import { X, Clock, Navigation, Award, Shield, CheckCircle2, Link as LinkIcon, ExternalLink, Loader2 } from 'lucide-react';
+import { X, Clock, Navigation, Award, Shield, CheckCircle2, Link as LinkIcon, ExternalLink, Loader2, Check, CreditCard } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { acceptQuest, submitQuestProofInFirestore } from '../services/questService';
+import { acceptQuest, submitQuestProofInFirestore, updateQuestStatusInFirestore } from '../services/questService';
+import { awardBountyToHunter } from '../services/userService';
+import PaymentModal from './PaymentModal';
 import { toast } from 'react-toastify';
 
 interface QuestModalProps {
@@ -17,6 +19,7 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
   const [localStatus, setLocalStatus] = useState<Quest['status']>(quest.status);
   const [proofLink, setProofLink] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const locName = quest.location?.name ?? quest.locationZone ?? quest.locationName ?? 'Campus';
   const rewardAmount = quest.reward?.amount ?? quest.rewardAmount ?? 0;
@@ -26,13 +29,17 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
   const posterLevel = quest.poster?.level ?? quest.posterLevel ?? 1;
   const posterAvatar = quest.poster?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(posterName)}`;
 
+  const currentUserId = authUser?.uid || '';
+  const currentUserName = userProfile?.name || authUser?.displayName || 'Hunter';
+
+  const isPoster = quest.posterId === currentUserId || posterName.toLowerCase() === currentUserName.toLowerCase();
+  const isRupees = rewardType === 'Rupees' || rewardType === 'Rupee';
+
   const handleAccept = async () => {
     if (!quest.id) return;
     setIsProcessing(true);
     try {
-      const hunterId = authUser?.uid || '';
-      const hunterName = userProfile?.name || authUser?.displayName || 'Alex Hunter';
-      await acceptQuest(quest.id, hunterId, hunterName);
+      await acceptQuest(quest.id, currentUserId, currentUserName);
       setLocalStatus('In Progress');
       toast.success('QUEST ACCEPTED! LFG 🚀');
     } catch (error) {
@@ -54,7 +61,7 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
     setIsProcessing(true);
 
     try {
-      // Store proofUrl directly in regular Firestore database quests collection (No Firebase Storage)
+      // Store proofUrl directly in regular Firestore database quests collection
       await submitQuestProofInFirestore(quest.id, proofLink.trim(), 'Google Drive / Cloud Link');
 
       setLocalStatus('Submitted');
@@ -62,6 +69,52 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
     } catch (error) {
       console.error('Failed to save proof link in Firestore:', error);
       toast.error('Failed to submit proof. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Poster approves submitted proof and releases escrow bounty to hunter
+  const handleApproveEscrow = async () => {
+    if (!quest.id) return;
+    setIsProcessing(true);
+
+    try {
+      // 1. Award bounty XP & Coins to hunter in Firestore
+      if (quest.hunterId) {
+        await awardBountyToHunter(quest.hunterId, rewardAmount, rewardType);
+      }
+
+      // 2. Update quest status in Firestore
+      await updateQuestStatusInFirestore(quest.id, 'Verified & Released');
+
+      setLocalStatus('Verified & Released');
+      toast.success(`ESCROW VERIFIED! Released ${rewardAmount} ${rewardType} to Hunter! 💸✨`);
+
+      // If Rupee bounty, automatically prompt UPI payment portal
+      if (isRupees) {
+        setShowPaymentModal(true);
+      }
+    } catch (error) {
+      console.error('Failed to approve escrow in Firestore:', error);
+      toast.error('Failed to release bounty. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Poster rejects proof and sets quest back to In Progress
+  const handleRejectEscrow = async () => {
+    if (!quest.id) return;
+    setIsProcessing(true);
+
+    try {
+      await updateQuestStatusInFirestore(quest.id, 'In Progress');
+      setLocalStatus('In Progress');
+      toast.warn('Proof rejected. Quest sent back for hunter re-submission.');
+    } catch (error) {
+      console.error('Failed to reject escrow in Firestore:', error);
+      toast.error('Failed to update quest status.');
     } finally {
       setIsProcessing(false);
     }
@@ -146,6 +199,14 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
                 </div>
               </div>
             </div>
+            {quest.hunterName && (
+              <div className="text-right">
+                <p className="text-[10px] uppercase tracking-wider text-gray-500 font-black">Assigned Hunter</p>
+                <span className="font-black text-[#16A34A] text-sm bg-green-100 px-2 py-1 rounded border border-black inline-block">
+                  {quest.hunterName}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Action Area based on Status */}
@@ -202,34 +263,119 @@ const QuestModal: React.FC<QuestModalProps> = ({ quest, onClose }) => {
             )}
 
             {localStatus === 'Submitted' && (
-              <div className="w-full py-8 bg-[#EAB308] border-2 border-black brutal-shadow rounded-xl flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-10 h-10 border-4 border-black border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-black font-black text-xl uppercase mb-1">Awaiting Escrow Verification...</p>
+              <div className="w-full p-6 bg-[#EAB308] border-4 border-black brutal-shadow rounded-2xl flex flex-col items-center justify-center text-center space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+                  <h3 className="text-black font-black text-2xl uppercase">Awaiting Escrow Verification</h3>
+                </div>
+
+                {/* View Submitted Link Option */}
                 {quest.proofUrl && (
                   <a 
                     href={quest.proofUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-xs font-black uppercase bg-white hover:bg-black hover:text-white text-black px-3 py-1.5 rounded-lg border-2 border-black flex items-center gap-1.5 mt-3 transition-colors"
+                    className="text-xs font-black uppercase bg-white hover:bg-black hover:text-white text-black px-4 py-2.5 rounded-xl border-2 border-black flex items-center gap-2 transition-colors brutal-shadow-sm cursor-pointer"
                   >
-                    <ExternalLink className="w-4 h-4" strokeWidth={2.5} /> View Submitted Cloud Link
+                    <ExternalLink className="w-4.5 h-4.5 text-[#2563EB]" strokeWidth={2.5} /> View Submitted Cloud Link
                   </a>
+                )}
+
+                {/* Verification Controls */}
+                {isPoster ? (
+                  <div className="w-full pt-4 border-t-2 border-black space-y-3">
+                    <p className="text-xs font-black uppercase text-black">
+                      You are the poster of this quest ({posterName}). Review the submitted link above and release escrow:
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <button
+                        onClick={handleApproveEscrow}
+                        disabled={isProcessing}
+                        className="flex-1 py-3.5 bg-[#16A34A] hover:bg-black text-white font-black uppercase text-sm rounded-xl brutal-border brutal-shadow hover:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                      >
+                        {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-5 h-5" strokeWidth={3} />}
+                        Approve & Release Bounty ({rewardAmount} {rewardType})
+                      </button>
+                      <button
+                        onClick={handleRejectEscrow}
+                        disabled={isProcessing}
+                        className="py-3.5 px-4 bg-red-100 hover:bg-red-500 hover:text-white text-black font-black uppercase text-xs rounded-xl brutal-border transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        Reject Proof
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full pt-4 border-t-2 border-black space-y-3">
+                    <p className="text-xs font-bold text-black/90 bg-white/60 p-2.5 rounded-lg border border-black">
+                      The quest poster <strong className="uppercase font-black text-black">{posterName}</strong> is reviewing the submitted proof link. Once approved, <strong className="font-black text-black">{rewardAmount} {rewardType}</strong> will be credited directly to your profile.
+                    </p>
+                    
+                    <button
+                      onClick={handleApproveEscrow}
+                      disabled={isProcessing}
+                      className="text-xs font-black uppercase bg-white hover:bg-black hover:text-white text-black px-4 py-2 rounded-xl border-2 border-black transition-colors cursor-pointer flex items-center gap-1.5 mx-auto"
+                    >
+                      {isProcessing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-4 h-4 text-[#16A34A]" strokeWidth={3} />}
+                      Verify & Release Bounty (Demo / Poster Action)
+                    </button>
+                  </div>
                 )}
               </div>
             )}
 
             {localStatus === 'Verified & Released' && (
-              <div className="w-full py-8 bg-[#16A34A] border-2 border-black brutal-shadow rounded-xl flex flex-col items-center justify-center">
-                <CheckCircle2 className="w-16 h-16 text-white mb-4" strokeWidth={3} />
-                <h3 className="text-white font-black text-3xl mb-2 uppercase">Quest Completed!</h3>
-                <p className="text-white font-bold text-lg bg-black px-4 py-2 rounded-xl border-2 border-white">
-                  +{rewardAmount} {rewardType}
-                </p>
+              <div className="w-full p-8 bg-[#16A34A] border-4 border-black brutal-shadow rounded-2xl flex flex-col items-center justify-center text-center space-y-4">
+                <CheckCircle2 className="w-16 h-16 text-white" strokeWidth={3} />
+                <h3 className="text-white font-black text-3xl uppercase leading-none">Quest Completed!</h3>
+                
+                <div className="bg-black text-white px-5 py-2.5 rounded-xl border-2 border-white font-black text-lg uppercase tracking-wider">
+                  +{rewardAmount} {rewardType} Released
+                </div>
+
+                {/* Permanent Option to View Submitted Proof Link */}
+                {quest.proofUrl && (
+                  <a 
+                    href={quest.proofUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-xs font-black uppercase bg-white hover:bg-black hover:text-white text-black px-4 py-2.5 rounded-xl border-2 border-black flex items-center gap-2 transition-all brutal-shadow-sm cursor-pointer mt-2"
+                  >
+                    <ExternalLink className="w-4 h-4" strokeWidth={2.5} /> View Submitted Proof Link
+                  </a>
+                )}
+
+                {/* Functional UPI Payment System Gateway Button for Rupees Bounties */}
+                {isRupees && (
+                  <div className="pt-4 border-t-2 border-white/40 w-full flex flex-col items-center">
+                    <button
+                      onClick={() => setShowPaymentModal(true)}
+                      className="w-full py-3.5 bg-[#EAB308] hover:bg-black hover:text-white text-black font-black uppercase text-sm rounded-xl brutal-border brutal-shadow hover:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <CreditCard className="w-5 h-5 text-black" strokeWidth={2.5} />
+                      Pay / Settle ₹{rewardAmount} via UPI (GPay / PhonePe / Paytm)
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Rupee UPI Payment Portal Modal */}
+      {showPaymentModal && (
+        <PaymentModal
+          amount={rewardAmount}
+          questTitle={quest.title}
+          recipientName={quest.hunterName || 'Quest Hunter'}
+          onClose={() => setShowPaymentModal(false)}
+          onPaymentSuccess={() => {
+            setShowPaymentModal(false);
+            toast.success(`Rupee payment of ₹${rewardAmount} settled via UPI! 📲💸`);
+          }}
+        />
+      )}
     </div>
   );
 };

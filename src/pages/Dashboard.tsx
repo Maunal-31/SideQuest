@@ -56,8 +56,8 @@ const Dashboard: React.FC = () => {
 
   const categories = ['All', 'Code/Debugging', 'Hardware/Lab Tools', 'Design/Poster', 'Printing/Notes', 'Quick Favors'];
 
-  const handleZoneClick = (lat: number, lng: number) => {
-    setFlyToLocation({ lat, lng });
+  const handleZoneClick = (lat: number, lng: number, name?: string) => {
+    setFlyToLocation({ lat, lng, name });
   };
 
   return (
@@ -163,8 +163,8 @@ const Dashboard: React.FC = () => {
           {Object.entries(CAMPUS_ZONES).map(([key, zone]) => (
             <button
               key={key}
-              onClick={() => handleZoneClick(zone.lat, zone.lng)}
-              className="shrink-0 px-3 py-1.5 bg-[#F3F1EB] hover:bg-[#EAB308] text-black text-xs font-bold uppercase rounded-md brutal-border brutal-shadow-sm transition-colors whitespace-nowrap"
+              onClick={() => handleZoneClick(zone.lat, zone.lng, key)}
+              className="shrink-0 px-3 py-1.5 bg-[#F3F1EB] hover:bg-[#EAB308] text-black text-xs font-bold uppercase rounded-md brutal-border brutal-shadow-sm transition-colors whitespace-nowrap cursor-pointer"
             >
               {key}
             </button>

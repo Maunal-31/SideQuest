@@ -83,9 +83,9 @@ const PostQuestModal: React.FC<PostQuestModalProps> = ({ onClose }) => {
         onClose();
       }, 700);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create quest in Firestore:', error);
-      toast.error('Failed to post bounty. Please check your connection and try again.');
+      toast.error(error?.message || 'Failed to post bounty. Please enter informative details.');
       setIsSubmitting(false);
     }
   };

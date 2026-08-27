@@ -3,6 +3,12 @@ import { Quest, UserProfile } from '../types';
 import { CURRENT_USER } from '../data/mockData';
 import { subscribeToQuests, acceptQuest as acceptQuestService, updateQuestStatusInFirestore } from '../services/questService';
 
+export interface LocationTarget {
+  lat: number;
+  lng: number;
+  name?: string;
+}
+
 interface SideQuestContextType {
   quests: Quest[];
   currentUser: UserProfile;
@@ -11,8 +17,8 @@ interface SideQuestContextType {
   acceptQuest: (id: string, hunterIdOrName: string, hunterName?: string) => Promise<void>;
   activeMapPin: string | null;
   setActiveMapPin: (id: string | null) => void;
-  flyToLocation: { lat: number; lng: number } | null;
-  setFlyToLocation: (loc: { lat: number; lng: number } | null) => void;
+  flyToLocation: LocationTarget | null;
+  setFlyToLocation: (loc: LocationTarget | null) => void;
 }
 
 const SideQuestContext = createContext<SideQuestContextType | undefined>(undefined);
@@ -21,7 +27,7 @@ export const SideQuestProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [quests, setQuests] = useState<Quest[]>([]);
   const [currentUser] = useState<UserProfile>(CURRENT_USER);
   const [activeMapPin, setActiveMapPin] = useState<string | null>(null);
-  const [flyToLocation, setFlyToLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [flyToLocation, setFlyToLocation] = useState<LocationTarget | null>(null);
 
   useEffect(() => {
     const unsubscribe = subscribeToQuests((liveQuests) => {

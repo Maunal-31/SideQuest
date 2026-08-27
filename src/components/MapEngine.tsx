@@ -7,23 +7,29 @@ import { CAMPUS_BOUNDS, CAMPUS_CENTER } from '../data/mockData';
 import { getCategoryHex } from '../utils/colors';
 import { calculateDistanceMeters, formatDistance } from '../utils/distance';
 import { Quest } from '../types';
-import { AlertCircle, Crosshair } from 'lucide-react';
+import { AlertCircle, Crosshair, MapPin } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-// Map Controller for smooth flyTo animations
-const MapController = () => {
+// Map Controller for smooth flyTo animations & zoom-ins
+const MapController: React.FC<{ onZoneFly?: (zone: { lat: number; lng: number; name?: string }) => void }> = ({ onZoneFly }) => {
   const map = useMap();
   const { flyToLocation, setFlyToLocation } = useSideQuest();
 
   useEffect(() => {
     if (flyToLocation) {
-      map.flyTo([flyToLocation.lat, flyToLocation.lng], 18, {
-        duration: 1.5,
+      const zoomLevel = flyToLocation.name ? 17.8 : 17.5;
+      map.flyTo([flyToLocation.lat, flyToLocation.lng], zoomLevel, {
+        duration: 1.2,
         easeLinearity: 0.25,
       });
+
+      if (flyToLocation.name && onZoneFly) {
+        onZoneFly(flyToLocation);
+      }
+
       setFlyToLocation(null);
     }
-  }, [flyToLocation, map, setFlyToLocation]);
+  }, [flyToLocation, map, setFlyToLocation, onZoneFly]);
 
   return null;
 };
@@ -48,6 +54,28 @@ const createCustomIcon = (hexColor: string, isUrgent: boolean) => {
     iconSize: [44, 44],
     iconAnchor: [22, 44],
     popupAnchor: [0, -44],
+  });
+};
+
+// Custom icon creator for Zone Location Pin (placed when clicking a Zone button)
+const createZoneLocationIcon = (zoneName: string) => {
+  const svgTemplate = `
+    <div style="position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 60px; height: 60px;">
+      <div style="position: absolute; width: 48px; height: 48px; background: rgba(234, 179, 8, 0.45); border-radius: 50%; border: 2.5px solid #EAB308; animation: ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#EAB308" stroke="#000000" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(4px 4px 0px rgba(0,0,0,1)); z-index: 10;">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+        <circle cx="12" cy="10" r="3.5" fill="#000000"></circle>
+      </svg>
+      <div style="position: absolute; bottom: -18px; background: #000000; color: #EAB308; font-size: 10px; font-weight: 900; text-transform: uppercase; padding: 2px 7px; border-radius: 6px; border: 1.5px solid #EAB308; white-space: nowrap; box-shadow: 2px 2px 0 rgba(0,0,0,1); z-index: 20;">${zoneName}</div>
+    </div>
+  `;
+
+  return L.divIcon({
+    className: 'custom-zone-icon',
+    html: svgTemplate,
+    iconSize: [60, 60],
+    iconAnchor: [30, 60],
+    popupAnchor: [0, -60],
   });
 };
 
@@ -81,6 +109,7 @@ const MapEngine: React.FC<MapEngineProps> = ({ quests: propQuests }) => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState<boolean>(false);
+  const [selectedZonePin, setSelectedZonePin] = useState<{ lat: number; lng: number; name: string } | null>(null);
 
   // Live GPS tracking using watchPosition
   useEffect(() => {
@@ -129,14 +158,20 @@ const MapEngine: React.FC<MapEngineProps> = ({ quests: propQuests }) => {
     }
   };
 
+  const handleZoneFly = (target: { lat: number; lng: number; name?: string }) => {
+    if (target.name) {
+      setSelectedZonePin({ lat: target.lat, lng: target.lng, name: target.name });
+      toast.info(`Zoomed into LDCE Zone: ${target.name} 📍`);
+    }
+  };
+
   return (
     <div id="tour-map" className="w-full h-full relative z-0">
       <MapContainer
         center={CAMPUS_CENTER}
         zoom={17}
-        minZoom={14}
+        minZoom={13}
         maxZoom={19}
-        maxBounds={CAMPUS_BOUNDS}
         className="w-full h-full"
         zoomControl={false}
       >
@@ -144,9 +179,27 @@ const MapEngine: React.FC<MapEngineProps> = ({ quests: propQuests }) => {
         <TileLayer
           attribution='&copy; <a href="https://maps.google.com">Google Maps</a>'
           url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+          maxZoom={19}
+          maxNativeZoom={19}
         />
         
-        <MapController />
+        <MapController onZoneFly={handleZoneFly} />
+
+        {/* Dynamic Zone Pin dropped when clicking a Zone button */}
+        {selectedZonePin && (
+          <Marker position={[selectedZonePin.lat, selectedZonePin.lng]} icon={createZoneLocationIcon(selectedZonePin.name)}>
+            <Popup className="custom-popup">
+              <div className="p-2 text-center font-sans">
+                <div className="flex items-center justify-center gap-1.5 text-black font-black text-xs uppercase mb-1">
+                  <MapPin className="w-4 h-4 text-[#EA580C]" strokeWidth={3} /> LDCE Zone Pinpoint
+                </div>
+                <p className="text-sm font-black text-[#EA580C] uppercase bg-yellow-100 p-1.5 rounded-lg border border-black">
+                  {selectedZonePin.name}
+                </p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
 
         {/* Live User Location Pinpoint Marker */}
         {userLocation && (
