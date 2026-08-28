@@ -16,7 +16,10 @@ const Profile: React.FC = () => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const userId = authUser?.uid || '';
-  const userName = userProfile?.name || authUser?.displayName || authUser?.email?.split('@')[0] || 'Hunter';
+  const userEmail = authUser?.email?.toLowerCase() || '';
+  const rawUserName = userProfile?.name || authUser?.displayName || authUser?.email?.split('@')[0] || 'Hunter';
+  const userName = rawUserName.toLowerCase();
+
   const userLevel = userProfile?.level ?? 1;
   const userXp = userProfile?.xp ?? 0;
   const nextLevelXp = userLevel * 500;
@@ -26,7 +29,7 @@ const Profile: React.FC = () => {
   const avatarUrl =
     userProfile?.avatarUrl ||
     authUser?.photoURL ||
-    `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(userName)}`;
+    `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(rawUserName)}`;
 
   // Badges stored in user profile or fallback defaults
   const userBadges =
@@ -34,23 +37,45 @@ const Profile: React.FC = () => {
       ? userProfile.badges
       : ['First Blood', 'Campus Hunter'];
 
-  // 1. Posted Quests: where posterId matches current user's UID
-  const postedQuestsList = quests.filter(
-    (q) => q.posterId === userId || (q.poster && q.poster.id === userId)
-  );
+  // Helper matchers for robust profile quest linking
+  const isPosterOfQuest = (q: Quest) => {
+    if (!q) return false;
+    const qPosterId = (q.posterId || q.poster?.id || '').toLowerCase();
+    const qPosterName = (q.posterName || q.poster?.name || '').toLowerCase();
+    return (
+      (userId && qPosterId === userId.toLowerCase()) ||
+      (userEmail && qPosterId === userEmail) ||
+      (userName && qPosterName === userName)
+    );
+  };
 
-  // 2. Active Quests: where hunterId matches current user's UID and status is 'In Progress' or 'Submitted'
-  const activeQuestsList = quests.filter(
-    (q) =>
-      (q.hunterId === userId || q.hunterName === userName) &&
-      (q.status === 'In Progress' || q.status === 'Submitted')
-  );
+  const isHunterOfQuest = (q: Quest) => {
+    if (!q) return false;
+    const qHunterId = (q.hunterId || '').toLowerCase();
+    const qHunterName = (q.hunterName || '').toLowerCase();
+    return (
+      (userId && qHunterId === userId.toLowerCase()) ||
+      (userEmail && qHunterId === userEmail) ||
+      (userName && qHunterName === userName)
+    );
+  };
 
-  // 3. History (Completed) Quests: status is 'Verified & Released' where user is hunter or poster
-  const completedQuestsList = quests.filter(
-    (q) =>
-      q.status === 'Verified & Released' &&
-      (q.hunterId === userId || q.hunterName === userName || q.posterId === userId)
+  const COMPLETED_STATUS_SET = new Set(['Verified & Released', 'Completed', 'completed', 'Finished', 'finished', 'Closed', 'closed', 'Expired', 'expired']);
+
+  const isCompletedQuest = (q: Quest) => {
+    if (!q || !q.status) return false;
+    return COMPLETED_STATUS_SET.has(q.status);
+  };
+
+  // 1. Posted Quests: created by current user
+  const postedQuestsList = quests.filter(q => isPosterOfQuest(q));
+
+  // 2. Active Quests: ALL active live campus bounties that are NOT completed (Open, In Progress, Submitted)
+  const activeQuestsList = quests.filter(q => !isCompletedQuest(q));
+
+  // 3. History (Completed) Quests: strictly completed bounties where user was hunter or poster
+  const completedQuestsList = quests.filter(q => 
+    isCompletedQuest(q) && (isHunterOfQuest(q) || isPosterOfQuest(q))
   );
 
   return (
@@ -63,7 +88,7 @@ const Profile: React.FC = () => {
           {/* User Card */}
           <div className="bg-[#60A5FA] rounded-2xl p-6 text-center relative brutal-border brutal-shadow">
             
-            {/* Gear Icon to open Settings - z-30 ensures clickability above sibling containers */}
+            {/* Gear Icon to open Settings */}
             <button 
               type="button"
               onClick={(e) => {
@@ -90,14 +115,14 @@ const Profile: React.FC = () => {
               </div>
               
               <h2 className="text-3xl font-black text-black mb-1 uppercase bg-white px-3 py-1 rounded brutal-border">
-                {userName}
+                {rawUserName}
               </h2>
               
               <p className="text-black bg-[#C084FC] px-3 py-1 rounded-md brutal-border brutal-shadow-sm text-sm font-black uppercase mt-2 mb-2">
                 {guildRank}
               </p>
 
-              {/* Department Tag & Default Zone Tag (Clickable to open Settings) */}
+              {/* Department Tag & Default Zone Tag */}
               <div className="flex flex-col gap-1.5 items-center mb-4">
                 <button
                   type="button"

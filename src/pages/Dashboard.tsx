@@ -46,10 +46,11 @@ const Dashboard: React.FC = () => {
   }, [quests, setActiveMapPin]);
 
   const filteredQuests = quests.filter(q => {
+    const isNotCompleted = q.status !== 'Verified & Released';
     const matchesSearch = q.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           q.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || q.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    return isNotCompleted && matchesSearch && matchesCategory;
   });
 
   const activeQuest = quests.find(q => q.id === activeMapPin);
@@ -57,7 +58,7 @@ const Dashboard: React.FC = () => {
   const categories = ['All', 'Code/Debugging', 'Hardware/Lab Tools', 'Design/Poster', 'Printing/Notes', 'Quick Favors'];
 
   const handleZoneClick = (lat: number, lng: number, name?: string) => {
-    setFlyToLocation({ lat, lng, name });
+    setFlyToLocation({ lat, lng, name, type: 'zone' });
   };
 
   return (

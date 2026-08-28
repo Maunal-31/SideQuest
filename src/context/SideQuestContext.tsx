@@ -7,6 +7,7 @@ export interface LocationTarget {
   lat: number;
   lng: number;
   name?: string;
+  type?: 'zone' | 'quest' | 'user';
 }
 
 interface SideQuestContextType {

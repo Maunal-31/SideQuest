@@ -11,7 +11,7 @@ import { AlertCircle, Crosshair, MapPin } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 // Map Controller for smooth flyTo animations & zoom-ins
-const MapController: React.FC<{ onZoneFly?: (zone: { lat: number; lng: number; name?: string }) => void }> = ({ onZoneFly }) => {
+const MapController: React.FC<{ onFlyPin?: (target: { lat: number; lng: number; name?: string; type?: string }) => void }> = ({ onFlyPin }) => {
   const map = useMap();
   const { flyToLocation, setFlyToLocation } = useSideQuest();
 
@@ -23,13 +23,13 @@ const MapController: React.FC<{ onZoneFly?: (zone: { lat: number; lng: number; n
         easeLinearity: 0.25,
       });
 
-      if (flyToLocation.name && onZoneFly) {
-        onZoneFly(flyToLocation);
+      if (onFlyPin) {
+        onFlyPin(flyToLocation);
       }
 
       setFlyToLocation(null);
     }
-  }, [flyToLocation, map, setFlyToLocation, onZoneFly]);
+  }, [flyToLocation, map, setFlyToLocation, onFlyPin]);
 
   return null;
 };
@@ -54,6 +54,28 @@ const createCustomIcon = (hexColor: string, isUrgent: boolean) => {
     iconSize: [44, 44],
     iconAnchor: [22, 44],
     popupAnchor: [0, -44],
+  });
+};
+
+// Custom icon creator for Quest-specific Location Pin (dropped when clicking a Quest card)
+const createQuestLocationIcon = (questName: string) => {
+  const svgTemplate = `
+    <div style="position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 60px; height: 60px;">
+      <div style="position: absolute; width: 48px; height: 48px; background: rgba(239, 68, 68, 0.4); border-radius: 50%; border: 2.5px solid #EF4444; animation: ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#EF4444" stroke="#000000" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(4px 4px 0px rgba(0,0,0,1)); z-index: 10;">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+        <circle cx="12" cy="10" r="3.5" fill="#000000"></circle>
+      </svg>
+      <div style="position: absolute; bottom: -18px; background: #000000; color: #EF4444; font-size: 10px; font-weight: 900; text-transform: uppercase; padding: 2px 7px; border-radius: 6px; border: 1.5px solid #EF4444; white-space: nowrap; box-shadow: 2px 2px 0 rgba(0,0,0,1); z-index: 20;">${questName}</div>
+    </div>
+  `;
+
+  return L.divIcon({
+    className: 'custom-quest-location-icon',
+    html: svgTemplate,
+    iconSize: [60, 60],
+    iconAnchor: [30, 60],
+    popupAnchor: [0, -60],
   });
 };
 
@@ -110,6 +132,7 @@ const MapEngine: React.FC<MapEngineProps> = ({ quests: propQuests }) => {
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [selectedZonePin, setSelectedZonePin] = useState<{ lat: number; lng: number; name: string } | null>(null);
+  const [activeQuestPin, setActiveQuestPin] = useState<{ lat: number; lng: number; name: string } | null>(null);
 
   // Live GPS tracking using watchPosition
   useEffect(() => {
@@ -150,18 +173,28 @@ const MapEngine: React.FC<MapEngineProps> = ({ quests: propQuests }) => {
 
   const handleCenterOnUser = () => {
     if (userLocation) {
-      setFlyToLocation({ lat: userLocation.lat, lng: userLocation.lng });
+      setFlyToLocation({ lat: userLocation.lat, lng: userLocation.lng, name: 'Your Location', type: 'user' });
       toast.info('Centered on your live GPS location! 📍');
     } else {
-      setFlyToLocation({ lat: CAMPUS_CENTER[0], lng: CAMPUS_CENTER[1] });
+      setFlyToLocation({ lat: CAMPUS_CENTER[0], lng: CAMPUS_CENTER[1], name: 'LDCE Campus', type: 'user' });
       toast.info('Tracking your location... Centered on LDCE Campus.');
     }
   };
 
   const handleZoneFly = (target: { lat: number; lng: number; name?: string }) => {
+    // Clear the other pin type so only one shows at a time
+    setActiveQuestPin(null);
     if (target.name) {
       setSelectedZonePin({ lat: target.lat, lng: target.lng, name: target.name });
-      toast.info(`Zoomed into LDCE Zone: ${target.name} 📍`);
+    }
+  };
+
+  const handleQuestFlyPin = (target: { lat: number; lng: number; name?: string }) => {
+    // Clear the other pin type so only one shows at a time
+    setSelectedZonePin(null);
+    if (target.name) {
+      setActiveQuestPin({ lat: target.lat, lng: target.lng, name: target.name });
+      toast.info(`Pinned location: ${target.name} 📍`);
     }
   };
 
@@ -183,7 +216,14 @@ const MapEngine: React.FC<MapEngineProps> = ({ quests: propQuests }) => {
           maxNativeZoom={19}
         />
         
-        <MapController onZoneFly={handleZoneFly} />
+        <MapController onFlyPin={(target) => {
+          if (target.type === 'quest') {
+            handleQuestFlyPin(target);
+          } else if (target.type === 'zone') {
+            handleZoneFly(target);
+          }
+          // 'user' type just flies, no extra pin needed (GPS marker is always shown)
+        }} />
 
         {/* Dynamic Zone Pin dropped when clicking a Zone button */}
         {selectedZonePin && (
@@ -195,6 +235,22 @@ const MapEngine: React.FC<MapEngineProps> = ({ quests: propQuests }) => {
                 </div>
                 <p className="text-sm font-black text-[#EA580C] uppercase bg-yellow-100 p-1.5 rounded-lg border border-black">
                   {selectedZonePin.name}
+                </p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
+
+        {/* Dynamic Quest Location Pin dropped when clicking a Quest card */}
+        {activeQuestPin && (
+          <Marker position={[activeQuestPin.lat, activeQuestPin.lng]} icon={createQuestLocationIcon(activeQuestPin.name)}>
+            <Popup className="custom-popup">
+              <div className="p-2 text-center font-sans">
+                <div className="flex items-center justify-center gap-1.5 text-black font-black text-xs uppercase mb-1">
+                  <MapPin className="w-4 h-4 text-[#EF4444]" strokeWidth={3} /> Quest Location
+                </div>
+                <p className="text-sm font-black text-[#EF4444] uppercase bg-red-100 p-1.5 rounded-lg border border-black">
+                  {activeQuestPin.name}
                 </p>
               </div>
             </Popup>

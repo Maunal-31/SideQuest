@@ -25,13 +25,18 @@ const QuestCard: React.FC<QuestCardProps> = ({ id, quest, onClick }) => {
 
   const handleLocate = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setFlyToLocation({ lat, lng });
+    setFlyToLocation({ lat, lng, name: locName, type: 'quest' });
+  };
+
+  const handleCardClick = () => {
+    onClick();
+    setFlyToLocation({ lat, lng, name: locName, type: 'quest' });
   };
 
   return (
     <div 
       id={id}
-      onClick={onClick}
+      onClick={handleCardClick}
       className="bg-white rounded-xl p-4 cursor-pointer hover:-translate-y-2 transition-transform brutal-border brutal-shadow flex flex-col"
     >
       <div className="flex justify-between items-start mb-4">
