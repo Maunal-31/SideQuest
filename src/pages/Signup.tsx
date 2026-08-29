@@ -80,13 +80,23 @@ const Signup: React.FC = () => {
     <div className="min-h-screen bg-[var(--color-brand-bg)] flex items-center justify-center p-4 pt-20">
       <div className="bg-white w-full max-w-md rounded-2xl p-8 brutal-border shadow-[8px_8px_0_0_rgba(0,0,0,1)] relative">
         
-        {/* Header */}
+        {/* Animated Pixel Star Compass Logo Header */}
         <div className="flex flex-col items-center text-center mb-8">
-          <div className="w-16 h-16 bg-[#C084FC] rounded-2xl brutal-border brutal-shadow-sm flex items-center justify-center mb-4">
-            <Shield className="w-9 h-9 text-black" strokeWidth={3} />
+          <div className="relative mb-4 group cursor-pointer">
+            {/* Pulsating Radial Glow */}
+            <div className="absolute inset-0 bg-[#EAB308]/40 rounded-3xl blur-lg animate-pulse"></div>
+            
+            <img 
+              src="/side_quest_logo.png" 
+              alt="SideQuest Pixel Compass Star Logo" 
+              className="w-24 h-24 relative z-10 object-contain animate-logo-float group-hover:scale-105 transition-transform duration-300" 
+            />
           </div>
-          <h1 className="text-3xl font-black uppercase text-black">Join SideQuest</h1>
-          <p className="text-sm font-bold text-gray-600 mt-1">Campus bounties & micro-task network</p>
+
+          <h1 className="text-3xl font-black uppercase text-black tracking-tight">Join SideQuest</h1>
+          <p className="text-xs font-black text-[#0097A7] uppercase tracking-widest mt-1.5 bg-teal-50 px-3.5 py-1 rounded-full border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
+            LDCE Hunter Guild • Game On
+          </p>
         </div>
 
         {/* Google Sign In */}

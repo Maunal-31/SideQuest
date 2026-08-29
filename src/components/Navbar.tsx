@@ -26,12 +26,27 @@ const Navbar: React.FC = () => {
     <nav className="fixed top-0 w-full z-40 px-4 md:px-8 py-4 pointer-events-none">
       <div className="max-w-7xl mx-auto flex items-center justify-between pointer-events-auto">
         
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 brutal-card px-4 py-2 bg-[#EAB308]">
-          <Sparkles className="w-6 h-6 text-black fill-white" />
-          <h1 className="text-2xl font-black tracking-tighter text-black uppercase">
-            SideQuest
-          </h1>
+        {/* Transparent App Icon Logo */}
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="relative flex items-center justify-center">
+            {/* Pulsating Glow */}
+            <div className="absolute inset-0 bg-[#EAB308]/30 rounded-2xl blur-md animate-pulse"></div>
+            
+            <img 
+              src="/side_quest_logo.png" 
+              alt="SideQuest Logo" 
+              className="h-12 w-auto object-contain relative z-10 animate-star-subtle group-hover:scale-105 transition-transform duration-300" 
+            />
+          </div>
+
+          <div className="flex flex-col leading-none">
+            <h1 className="text-2xl font-black tracking-tighter text-black uppercase group-hover:text-[#EA580C] transition-colors">
+              SIDEQUEST
+            </h1>
+            <span className="text-[10px] font-black text-[#0097A7] tracking-widest uppercase">
+              GAME ON • LDCE
+            </span>
+          </div>
         </Link>
 
         {/* Nav Links */}
